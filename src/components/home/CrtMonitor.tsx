@@ -1,27 +1,24 @@
-import { Suspense, useRef, useState, useEffect, useMemo } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Suspense, useRef, useMemo } from 'react'
+import { Canvas } from '@react-three/fiber'
 import { RoundedBox, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 
 /**
- * A retro CRT monitor — drag to spin, double-click to recenter.
- * Auto-rotates gently until user interacts.
+ * A retro CRT monitor — auto-rotates continuously, drag to override.
  */
 function Monitor() {
   const group = useRef<THREE.Group>(null)
-  const cursorRef = useRef<THREE.Mesh>(null)
-  const t = useRef(0)
 
-  // Terminal screen texture — dark with amber/cream "terminal" text
+  // Terminal screen texture — everything baked in, centered
   const screenTexture = useMemo(() => {
     const c = document.createElement('canvas')
     c.width = 512
     c.height = 384
     const ctx = c.getContext('2d')!
 
-    // Deep dark background with subtle gradient
+    // Deep dark background with subtle vignette
     const bg = ctx.createRadialGradient(256, 192, 80, 256, 192, 320)
-    bg.addColorStop(0, '#181612')
+    bg.addColorStop(0, '#1a1612')
     bg.addColorStop(1, '#0a0908')
     ctx.fillStyle = bg
     ctx.fillRect(0, 0, 512, 384)
@@ -32,33 +29,28 @@ function Monitor() {
       ctx.fillRect(0, y, 512, 1)
     }
 
-    // Terminal text — warm amber
+    // Centered text
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+
+    // Title — warm amber with soft glow
     ctx.fillStyle = '#ffc580'
-    ctx.font = 'bold 32px "Courier New", monospace'
-    ctx.shadowColor = '#ffc58066'
-    ctx.shadowBlur = 8
-    ctx.fillText("hi i'm fabio", 60, 180)
+    ctx.font = "bold 38px 'Courier New', monospace"
+    ctx.shadowColor = 'rgba(255, 197, 128, 0.5)'
+    ctx.shadowBlur = 10
+    ctx.fillText("hi i'm fabio", 256, 170)
     ctx.shadowBlur = 0
 
     // Prompt line
     ctx.fillStyle = '#9c8a6a'
-    ctx.font = 'bold 22px "Courier New", monospace'
-    ctx.fillText('>', 60, 240)
+    ctx.font = "bold 26px 'Courier New', monospace"
+    ctx.fillText('> _', 256, 235)
 
     const tex = new THREE.CanvasTexture(c)
     tex.colorSpace = THREE.SRGBColorSpace
     tex.anisotropy = 4
     return tex
   }, [])
-
-  useFrame((_, delta) => {
-    t.current += delta
-    // Blink cursor every ~0.6s
-    if (cursorRef.current) {
-      const visible = Math.floor(t.current * 1.6) % 2 === 0
-      cursorRef.current.visible = visible
-    }
-  })
 
   // Slightly warm off-white case material with subtle iridescence
   const caseMat = (
@@ -111,12 +103,6 @@ function Monitor() {
           roughness={0.3}
           metalness={0}
         />
-      </mesh>
-
-      {/* Blinking cursor underline */}
-      <mesh ref={cursorRef} position={[-0.45, 0.32, 0.665]}>
-        <planeGeometry args={[0.045, 0.06]} />
-        <meshBasicMaterial color="#ffc580" toneMapped={false} />
       </mesh>
 
       {/* Soft screen reflection sheen — top-left */}
@@ -195,32 +181,22 @@ function Monitor() {
 }
 
 function Scene() {
-  const controls = useRef<any>(null)
-  const [interacted, setInteracted] = useState(false)
-  const [reduced, setReduced] = useState(false)
-
-  useEffect(() => {
-    const m = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setReduced(m.matches)
-    const handler = (e: MediaQueryListEvent) => setReduced(e.matches)
-    m.addEventListener('change', handler)
-    return () => m.removeEventListener('change', handler)
-  }, [])
+  const reduced =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   return (
     <>
       <Monitor />
       <OrbitControls
-        ref={controls}
         enableZoom={false}
         enablePan={false}
         enableDamping
         dampingFactor={0.08}
         minPolarAngle={Math.PI / 3}
         maxPolarAngle={Math.PI / 1.8}
-        autoRotate={!interacted && !reduced}
-        autoRotateSpeed={0.9}
-        onStart={() => setInteracted(true)}
+        autoRotate={!reduced}
+        autoRotateSpeed={2.2}
       />
     </>
   )
