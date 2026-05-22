@@ -12,21 +12,22 @@ function Monitor() {
   // Terminal screen texture — everything baked in, centered
   const screenTexture = useMemo(() => {
     const c = document.createElement('canvas')
-    c.width = 512
-    c.height = 384
+    // Higher res for crisper text rendering
+    c.width = 1024
+    c.height = 768
     const ctx = c.getContext('2d')!
 
     // Deep dark background with subtle vignette
-    const bg = ctx.createRadialGradient(256, 192, 80, 256, 192, 320)
+    const bg = ctx.createRadialGradient(512, 384, 160, 512, 384, 640)
     bg.addColorStop(0, '#1a1612')
     bg.addColorStop(1, '#0a0908')
     ctx.fillStyle = bg
-    ctx.fillRect(0, 0, 512, 384)
+    ctx.fillRect(0, 0, 1024, 768)
 
     // Faint scanlines
     ctx.fillStyle = 'rgba(255, 200, 120, 0.04)'
-    for (let y = 0; y < 384; y += 3) {
-      ctx.fillRect(0, y, 512, 1)
+    for (let y = 0; y < 768; y += 6) {
+      ctx.fillRect(0, y, 1024, 2)
     }
 
     // Centered text
@@ -35,20 +36,22 @@ function Monitor() {
 
     // Title — warm amber with soft glow
     ctx.fillStyle = '#ffc580'
-    ctx.font = "bold 38px 'Courier New', monospace"
+    ctx.font = "bold 76px 'Courier New', monospace"
     ctx.shadowColor = 'rgba(255, 197, 128, 0.5)'
-    ctx.shadowBlur = 10
-    ctx.fillText("hi i'm fabio", 256, 170)
+    ctx.shadowBlur = 20
+    ctx.fillText("hi i'm fabio", 512, 340)
     ctx.shadowBlur = 0
 
     // Prompt line
     ctx.fillStyle = '#9c8a6a'
-    ctx.font = "bold 26px 'Courier New', monospace"
-    ctx.fillText('> _', 256, 235)
+    ctx.font = "bold 52px 'Courier New', monospace"
+    ctx.fillText('> _', 512, 470)
 
     const tex = new THREE.CanvasTexture(c)
     tex.colorSpace = THREE.SRGBColorSpace
-    tex.anisotropy = 4
+    tex.anisotropy = 8
+    tex.minFilter = THREE.LinearFilter
+    tex.magFilter = THREE.LinearFilter
     return tex
   }, [])
 
@@ -71,7 +74,7 @@ function Monitor() {
   )
 
   return (
-    <group ref={group} position={[0, 0, 0]}>
+    <group ref={group} position={[0, -0.3, 0]}>
       {/* MAIN CASE */}
       <RoundedBox args={[1.6, 1.35, 1.25]} radius={0.12} smoothness={6} position={[0, 0.45, 0]}>
         {caseMat}
@@ -103,12 +106,6 @@ function Monitor() {
           roughness={0.3}
           metalness={0}
         />
-      </mesh>
-
-      {/* Soft screen reflection sheen — top-left */}
-      <mesh position={[-0.3, 0.74, 0.667]} rotation={[0, 0, -0.2]}>
-        <planeGeometry args={[0.5, 0.16]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.05} />
       </mesh>
 
       {/* VENTILATION SLOTS on top */}
@@ -196,7 +193,7 @@ function Scene() {
         minPolarAngle={Math.PI / 3}
         maxPolarAngle={Math.PI / 1.8}
         autoRotate={!reduced}
-        autoRotateSpeed={2.2}
+        autoRotateSpeed={2.75}
       />
     </>
   )
