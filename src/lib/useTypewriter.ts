@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 
 const TYPE_SPEED = 70
 const ERASE_SPEED = 35
-const PAUSE_AFTER_TYPE = 1800
-const PAUSE_AFTER_ERASE = 350
+const PAUSE_AFTER_TYPE = 3500
+const PAUSE_AFTER_ERASE = 400
 
 /**
  * Cycles through `phrases` with a typewriter effect.
