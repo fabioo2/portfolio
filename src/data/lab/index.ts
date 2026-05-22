@@ -1,5 +1,4 @@
 import welcomeMd from './welcome.md?raw'
-import serverlessMd from './serverless-cold-starts.md?raw'
 
 export type LabEntryType = 'thought' | 'poc' | 'random'
 
@@ -23,16 +22,6 @@ export const labEntries: LabEntry[] = [
       'A space for half-baked ideas, proof-of-concept experiments, and notes I want to keep public-ish.',
     tags: ['meta'],
     body: welcomeMd,
-  },
-  {
-    slug: 'serverless-cold-starts',
-    title: 'Notes on Serverless Cold Starts',
-    type: 'thought',
-    date: '2026-05-18',
-    excerpt:
-      'What actually causes a cold start, what you can control, and when it doesn\'t matter.',
-    tags: ['serverless', 'aws', 'lambda'],
-    body: serverlessMd,
   },
 ]
 
