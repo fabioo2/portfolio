@@ -1,7 +1,18 @@
+import { lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { CrtMonitor } from './CrtMonitor'
 import { profile } from '@/data/resume'
+
+// Lazy-load the 3D monitor so three.js doesn't block first paint
+const CrtMonitor = lazy(() =>
+  import('./CrtMonitor').then((m) => ({ default: m.CrtMonitor }))
+)
+
+function MonitorFallback() {
+  return (
+    <div className="w-full aspect-square max-w-[320px] mx-auto md:mx-0 rounded-2xl bg-muted/40 animate-pulse" />
+  )
+}
 
 export function Hero() {
   return (
@@ -13,7 +24,9 @@ export function Hero() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
           >
-            <CrtMonitor />
+            <Suspense fallback={<MonitorFallback />}>
+              <CrtMonitor />
+            </Suspense>
           </motion.div>
 
           <motion.div
