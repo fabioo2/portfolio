@@ -72,7 +72,7 @@ export default function SkeletonPretextDemo() {
   return (
     <div className="my-8 border border-border rounded-xl bg-card overflow-hidden">
       {/* Controls */}
-      <div className="p-5 md:p-6 border-b border-border bg-muted/30 space-y-4">
+      <div className="p-4 sm:p-5 md:p-6 border-b border-border bg-muted/30 space-y-4">
         <div>
           <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">
             Content
@@ -86,9 +86,9 @@ export default function SkeletonPretextDemo() {
           />
         </div>
 
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 sm:flex-wrap">
           <label className="flex items-center gap-3 text-sm">
-            <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground w-14">
+            <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground w-14 shrink-0">
               Width
             </span>
             <input
@@ -98,26 +98,31 @@ export default function SkeletonPretextDemo() {
               step={10}
               value={width}
               onChange={(e) => setWidth(Number(e.target.value))}
-              className="w-32 sm:w-48 accent-[hsl(var(--brand))]"
+              className="flex-1 sm:flex-initial sm:w-48 accent-[hsl(var(--brand))]"
             />
-            <span className="font-mono text-xs tabular-nums text-muted-foreground w-12">
+            <span className="font-mono text-xs tabular-nums text-muted-foreground w-12 text-right shrink-0">
               {width}px
             </span>
           </label>
 
-          {phase === 'idle' && (
-            <Button onClick={simulate} size="sm">
-              Simulate Load
-            </Button>
-          )}
-          {phase !== 'idle' && (
-            <Button onClick={reset} size="sm" variant="outline">
-              Reset
-            </Button>
-          )}
+          <div className="flex items-center gap-3 flex-wrap">
+            {phase === 'idle' && (
+              <Button onClick={simulate} size="sm">
+                Simulate Load
+              </Button>
+            )}
+            {phase !== 'idle' && (
+              <Button onClick={reset} size="sm" variant="outline">
+                Reset
+              </Button>
+            )}
 
-          <div className="ml-auto text-xs font-mono text-muted-foreground tabular-nums">
-            Pretext says: <span className="text-foreground">{lineCount} lines · {Math.round(height)}px</span>
+            <div className="text-xs font-mono text-muted-foreground tabular-nums sm:ml-auto">
+              Pretext says:{' '}
+              <span className="text-foreground">
+                {lineCount} {lineCount === 1 ? 'line' : 'lines'} · {Math.round(height)}px
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -186,7 +191,7 @@ const Column = forwardRef<HTMLDivElement, ColumnProps>(function Column(
   const isLayoutShift = phase === 'loaded' && tone === 'bad' && Math.abs(skeletonHeight - contentHeight) > 4
 
   return (
-    <div ref={ref} className="p-5 md:p-6">
+    <div ref={ref} className="p-4 sm:p-5 md:p-6">
       <div className="flex items-baseline justify-between gap-3 mb-4">
         <div>
           <div className="font-serif text-lg font-medium">{title}</div>

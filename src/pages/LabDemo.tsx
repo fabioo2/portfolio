@@ -31,9 +31,9 @@ export default function LabDemo() {
         <ArrowLeft className="size-3.5" /> Back to Lab
       </Link>
 
-      <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
-        <div>
-          <div className="flex items-center gap-2 mb-2 text-xs">
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6 md:mb-8">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 mb-2 text-xs flex-wrap">
             <Badge variant="brand">
               {entry.type === 'poc' ? 'POC' : entry.type[0].toUpperCase() + entry.type.slice(1)}
             </Badge>
@@ -41,7 +41,7 @@ export default function LabDemo() {
               Standalone demo
             </span>
           </div>
-          <h1 className="font-serif text-3xl md:text-4xl font-medium leading-tight">
+          <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl font-medium leading-tight">
             {entry.title}
           </h1>
           {entry.excerpt && (
@@ -53,7 +53,7 @@ export default function LabDemo() {
 
         <Link
           to={`/lab/${entry.slug}`}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-border bg-muted/40 hover:bg-muted text-xs font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors shrink-0"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-border bg-muted/40 hover:bg-muted text-xs font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors self-start shrink-0"
         >
           <FileText className="size-3" />
           <span>Read full notes</span>
