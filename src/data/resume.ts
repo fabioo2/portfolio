@@ -1,6 +1,12 @@
 export const profile = {
   name: 'Fabio Kim',
   title: 'Software Developer',
+  titles: [
+    'Software Developer',
+    'Terraformer',
+    'AI-Fluent Builder',
+    'Design-Conscious Engineer',
+  ],
   tagline:
     'Building scalable, cloud-native web applications with a focus on serverless architectures and accessible UI development.',
   location: 'Toronto, ON, Canada',

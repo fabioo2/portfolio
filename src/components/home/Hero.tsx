@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { scrollHandler } from '@/lib/scroll'
+import { useTypewriter } from '@/lib/useTypewriter'
 import { profile } from '@/data/resume'
 
 // Lazy-load the 3D monitor so three.js doesn't block first paint
@@ -16,6 +17,8 @@ function MonitorFallback() {
 }
 
 export function Hero() {
+  const typed = useTypewriter(profile.titles)
+
   return (
     <section className="bg-muted/40 border-b border-border/60">
       <div className="container py-16 md:py-24">
@@ -35,8 +38,17 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15, ease: 'easeOut' }}
           >
-            <h1 className="font-serif text-5xl md:text-7xl font-medium tracking-tight leading-[1.05]">
-              {profile.title}
+            <h1
+              className="font-serif text-5xl md:text-7xl font-medium tracking-tight leading-[1.05] min-h-[1.05em]"
+              aria-label={profile.title}
+            >
+              <span>{typed}</span>
+              <span
+                className="animate-cursor inline-block ml-1 text-[hsl(var(--brand))] translate-y-[-0.05em]"
+                aria-hidden="true"
+              >
+                _
+              </span>
             </h1>
             <p className="mt-5 max-w-xl text-muted-foreground text-base md:text-lg leading-relaxed">
               {profile.tagline}
