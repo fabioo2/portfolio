@@ -9,35 +9,31 @@ import * as THREE from 'three'
 function Monitor() {
   const group = useRef<THREE.Group>(null)
 
-  // Screen content texture — dark screen + scanlines + terminal text.
-  // Aspect (1024x768 → 1.333) matches the front face of the screen box so
-  // the text isn't stretched. The bezel is provided by the box's side faces.
+  // Terminal screen texture — single centered line, terminal green
   const screenTexture = useMemo(() => {
     const c = document.createElement('canvas')
-    const W = 1024
-    const H = 768
-    c.width = W
-    c.height = H
+    c.width = 1024
+    c.height = 768
     const ctx = c.getContext('2d')!
 
-    // Dark screen surface
+    // Deep dark background — flat, no vignette (avoids gradient artifacts)
     ctx.fillStyle = '#070a07'
-    ctx.fillRect(0, 0, W, H)
+    ctx.fillRect(0, 0, 1024, 768)
 
-    // Subtle phosphor scanlines
+    // Subtle scanlines in the phosphor green tint
     ctx.fillStyle = 'rgba(95, 255, 142, 0.04)'
-    for (let y = 0; y < H; y += 4) {
-      ctx.fillRect(0, y, W, 1)
+    for (let y = 0; y < 768; y += 4) {
+      ctx.fillRect(0, y, 1024, 1)
     }
 
-    // Centered prompt line, terminal green with soft glow
+    // Single centered prompt line — terminal green
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.fillStyle = '#7bff9c'
     ctx.font = "bold 62px 'Courier New', monospace"
     ctx.shadowColor = 'rgba(95, 255, 142, 0.55)'
     ctx.shadowBlur = 18
-    ctx.fillText("> hi i'm fabio _", W / 2, H / 2)
+    ctx.fillText("> hi i'm fabio _", 512, 384)
 
     const tex = new THREE.CanvasTexture(c)
     tex.colorSpace = THREE.SRGBColorSpace
@@ -68,17 +64,32 @@ function Monitor() {
         {caseMat}
       </RoundedBox>
 
-      {/* SCREEN — a thin box. Front face shows the green terminal texture;
-          side/edge faces form the dark bezel rising out of the case. Single
-          mesh = no Z-fighting possible. Aspect matches the texture. */}
-      <mesh position={[0, 0.5, 0.665]}>
-        <boxGeometry args={[1.36, 1.02, 0.1]} />
-        <meshStandardMaterial attach="material-0" color="#2a2620" roughness={0.55} metalness={0.05} />
-        <meshStandardMaterial attach="material-1" color="#2a2620" roughness={0.55} metalness={0.05} />
-        <meshStandardMaterial attach="material-2" color="#2a2620" roughness={0.55} metalness={0.05} />
-        <meshStandardMaterial attach="material-3" color="#2a2620" roughness={0.55} metalness={0.05} />
-        <meshBasicMaterial attach="material-4" map={screenTexture} toneMapped={false} />
-        <meshStandardMaterial attach="material-5" color="#2a2620" roughness={0.55} metalness={0.05} />
+      {/* INNER BEZEL — darker frame; sits flush against the case front */}
+      <RoundedBox
+        args={[1.35, 1.1, 0.05]}
+        radius={0.08}
+        smoothness={6}
+        position={[0, 0.5, 0.62]}
+      >
+        <meshStandardMaterial
+          color="#cfc8b6"
+          metalness={0.08}
+          roughness={0.6}
+        />
+      </RoundedBox>
+
+      {/* SCREEN PANEL — pushed forward enough to avoid Z-fighting with bezel */}
+      <mesh position={[0, 0.5, 0.7]} renderOrder={1}>
+        <planeGeometry args={[1.22, 0.98]} />
+        <meshStandardMaterial
+          map={screenTexture}
+          emissive="#5fff8e"
+          emissiveIntensity={0.2}
+          emissiveMap={screenTexture}
+          toneMapped={false}
+          roughness={0.35}
+          metalness={0}
+        />
       </mesh>
 
       {/* VENTILATION SLOTS on top */}
