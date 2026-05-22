@@ -1,5 +1,5 @@
 import { useParams, Link, Navigate } from 'react-router-dom'
-import { ArrowDown, ArrowLeft } from 'lucide-react'
+import { ArrowDown, ArrowLeft, ExternalLink } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
@@ -64,6 +64,15 @@ export default function LabEntry() {
 
       {entry.demo && (
         <div id="lab-demo" className="scroll-mt-20 my-2">
+          <div className="flex justify-end mb-2">
+            <Link
+              to={`/lab/${entry.slug}/demo`}
+              className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ExternalLink className="size-3" />
+              <span>Standalone view</span>
+            </Link>
+          </div>
           <entry.demo />
         </div>
       )}
