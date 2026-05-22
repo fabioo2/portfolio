@@ -9,31 +9,45 @@ import * as THREE from 'three'
 function Monitor() {
   const group = useRef<THREE.Group>(null)
 
-  // Terminal screen texture — single centered line, terminal green
+  // Single texture: bezel frame + dark screen + terminal text + scanlines.
+  // Baking it all into one canvas means we only need ONE plane in front of
+  // the case — no more overlapping surfaces, no Z-fighting at all.
   const screenTexture = useMemo(() => {
     const c = document.createElement('canvas')
-    c.width = 1024
-    c.height = 768
+    const W = 1024
+    const H = 768
+    c.width = W
+    c.height = H
     const ctx = c.getContext('2d')!
 
-    // Deep dark background — flat, no vignette (avoids gradient artifacts)
-    ctx.fillStyle = '#070a07'
-    ctx.fillRect(0, 0, 1024, 768)
+    // Outer bezel frame (darker than case so it reads as a recess)
+    ctx.fillStyle = '#3a3530'
+    ctx.fillRect(0, 0, W, H)
 
-    // Subtle scanlines in the phosphor green tint
+    // Active screen area
+    const padX = 70
+    const padY = 70
+    const sx = padX
+    const sy = padY
+    const sw = W - padX * 2
+    const sh = H - padY * 2
+    ctx.fillStyle = '#070a07'
+    ctx.fillRect(sx, sy, sw, sh)
+
+    // Subtle phosphor scanlines inside the active area only
     ctx.fillStyle = 'rgba(95, 255, 142, 0.04)'
-    for (let y = 0; y < 768; y += 4) {
-      ctx.fillRect(0, y, 1024, 1)
+    for (let y = sy; y < sy + sh; y += 4) {
+      ctx.fillRect(sx, y, sw, 1)
     }
 
-    // Single centered prompt line — terminal green
+    // Centered prompt line in terminal green with a soft glow
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.fillStyle = '#7bff9c'
     ctx.font = "bold 62px 'Courier New', monospace"
     ctx.shadowColor = 'rgba(95, 255, 142, 0.55)'
     ctx.shadowBlur = 18
-    ctx.fillText("> hi i'm fabio _", 512, 384)
+    ctx.fillText("> hi i'm fabio _", W / 2, H / 2)
 
     const tex = new THREE.CanvasTexture(c)
     tex.colorSpace = THREE.SRGBColorSpace
@@ -64,32 +78,11 @@ function Monitor() {
         {caseMat}
       </RoundedBox>
 
-      {/* INNER BEZEL — darker frame; sits flush against the case front */}
-      <RoundedBox
-        args={[1.35, 1.1, 0.05]}
-        radius={0.08}
-        smoothness={6}
-        position={[0, 0.5, 0.62]}
-      >
-        <meshStandardMaterial
-          color="#cfc8b6"
-          metalness={0.08}
-          roughness={0.6}
-        />
-      </RoundedBox>
-
-      {/* SCREEN PANEL — pushed forward enough to avoid Z-fighting with bezel */}
-      <mesh position={[0, 0.5, 0.7]} renderOrder={1}>
-        <planeGeometry args={[1.22, 0.98]} />
-        <meshStandardMaterial
-          map={screenTexture}
-          emissive="#5fff8e"
-          emissiveIntensity={0.2}
-          emissiveMap={screenTexture}
-          toneMapped={false}
-          roughness={0.35}
-          metalness={0}
-        />
+      {/* SCREEN — single plane with everything (bezel, recess, text, scanlines)
+          baked into one texture. Sits well in front of the case face. */}
+      <mesh position={[0, 0.5, 0.65]}>
+        <planeGeometry args={[1.36, 1.1]} />
+        <meshBasicMaterial map={screenTexture} toneMapped={false} />
       </mesh>
 
       {/* VENTILATION SLOTS on top */}
