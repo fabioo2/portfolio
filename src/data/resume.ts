@@ -37,8 +37,8 @@ export const personal = {
     },
     {
       icon: 'cpu' as HobbyIcon,
-      label: 'IoT Tinkering',
-      detail: 'smart-home experiments — my GitHub is mostly Discord bots',
+      label: 'IoT & Home Lab',
+      detail: 'smart-home experiments and home-server automation — my GitHub is mostly Discord bots',
     },
     {
       icon: 'fish' as HobbyIcon,
