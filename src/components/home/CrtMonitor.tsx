@@ -9,9 +9,9 @@ import * as THREE from 'three'
 function Monitor() {
   const group = useRef<THREE.Group>(null)
 
-  // Single texture: bezel frame + dark screen + terminal text + scanlines.
-  // Baking it all into one canvas means we only need ONE plane in front of
-  // the case — no more overlapping surfaces, no Z-fighting at all.
+  // Screen content texture — dark screen + scanlines + terminal text.
+  // Aspect (1024x768 → 1.333) matches the front face of the screen box so
+  // the text isn't stretched. The bezel is provided by the box's side faces.
   const screenTexture = useMemo(() => {
     const c = document.createElement('canvas')
     const W = 1024
@@ -20,27 +20,17 @@ function Monitor() {
     c.height = H
     const ctx = c.getContext('2d')!
 
-    // Outer bezel frame (darker than case so it reads as a recess)
-    ctx.fillStyle = '#3a3530'
+    // Dark screen surface
+    ctx.fillStyle = '#070a07'
     ctx.fillRect(0, 0, W, H)
 
-    // Active screen area
-    const padX = 70
-    const padY = 70
-    const sx = padX
-    const sy = padY
-    const sw = W - padX * 2
-    const sh = H - padY * 2
-    ctx.fillStyle = '#070a07'
-    ctx.fillRect(sx, sy, sw, sh)
-
-    // Subtle phosphor scanlines inside the active area only
+    // Subtle phosphor scanlines
     ctx.fillStyle = 'rgba(95, 255, 142, 0.04)'
-    for (let y = sy; y < sy + sh; y += 4) {
-      ctx.fillRect(sx, y, sw, 1)
+    for (let y = 0; y < H; y += 4) {
+      ctx.fillRect(0, y, W, 1)
     }
 
-    // Centered prompt line in terminal green with a soft glow
+    // Centered prompt line, terminal green with soft glow
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.fillStyle = '#7bff9c'
@@ -78,11 +68,17 @@ function Monitor() {
         {caseMat}
       </RoundedBox>
 
-      {/* SCREEN — single plane with everything (bezel, recess, text, scanlines)
-          baked into one texture. Sits well in front of the case face. */}
-      <mesh position={[0, 0.5, 0.65]}>
-        <planeGeometry args={[1.36, 1.1]} />
-        <meshBasicMaterial map={screenTexture} toneMapped={false} />
+      {/* SCREEN — a thin box. Front face shows the green terminal texture;
+          side/edge faces form the dark bezel rising out of the case. Single
+          mesh = no Z-fighting possible. Aspect matches the texture. */}
+      <mesh position={[0, 0.5, 0.665]}>
+        <boxGeometry args={[1.36, 1.02, 0.1]} />
+        <meshStandardMaterial attach="material-0" color="#2a2620" roughness={0.55} metalness={0.05} />
+        <meshStandardMaterial attach="material-1" color="#2a2620" roughness={0.55} metalness={0.05} />
+        <meshStandardMaterial attach="material-2" color="#2a2620" roughness={0.55} metalness={0.05} />
+        <meshStandardMaterial attach="material-3" color="#2a2620" roughness={0.55} metalness={0.05} />
+        <meshBasicMaterial attach="material-4" map={screenTexture} toneMapped={false} />
+        <meshStandardMaterial attach="material-5" color="#2a2620" roughness={0.55} metalness={0.05} />
       </mesh>
 
       {/* VENTILATION SLOTS on top */}
