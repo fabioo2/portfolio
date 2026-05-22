@@ -57,11 +57,22 @@ export function Navbar() {
     }
   }
 
+  function handleHomeClick(e: React.MouseEvent) {
+    e.preventDefault()
+    if (isHome) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      navigate('/')
+      // ScrollToTop in App.tsx will jump to top on the route change
+    }
+  }
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
       <div className="container flex h-16 items-center justify-between">
         <Link
           to="/"
+          onClick={handleHomeClick}
           className="font-serif text-2xl md:text-3xl font-semibold tracking-tight hover:opacity-80 transition-opacity"
         >
           {profile.name}
