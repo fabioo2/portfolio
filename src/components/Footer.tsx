@@ -19,6 +19,9 @@ export function Footer() {
         <p className="text-xs">
           © {new Date().getFullYear()} {profile.name} — All systems operational.
         </p>
+        <p className="text-[11px] text-muted-foreground/70 max-w-md text-center leading-relaxed">
+          No tracking, no analytics. One localStorage flag remembers which Lab posts you've seen.
+        </p>
       </div>
     </footer>
   )
