@@ -74,7 +74,7 @@ function Monitor() {
   )
 
   return (
-    <group ref={group} position={[0, -0.3, 0]}>
+    <group ref={group} position={[0, -0.5, 0]}>
       {/* MAIN CASE */}
       <RoundedBox args={[1.6, 1.35, 1.25]} radius={0.12} smoothness={6} position={[0, 0.45, 0]}>
         {caseMat}
@@ -202,7 +202,7 @@ function Scene() {
 export function CrtMonitor() {
   return (
     <div
-      className="relative w-full aspect-square max-w-[360px] mx-auto md:mx-0 cursor-grab active:cursor-grabbing"
+      className="relative w-full aspect-square max-w-[360px] mx-auto md:mx-0 md:translate-x-[30px] cursor-grab active:cursor-grabbing"
       role="img"
       aria-label="Interactive 3D retro CRT monitor — drag to spin"
     >
