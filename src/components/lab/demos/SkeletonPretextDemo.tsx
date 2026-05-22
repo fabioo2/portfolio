@@ -21,10 +21,11 @@ export default function SkeletonPretextDemo() {
   const [phase, setPhase] = useState<Phase>('idle')
   const [trigger, setTrigger] = useState(0)
 
-  // Pretext-computed layout (cheap arithmetic after `prepare`)
+  // Pretext-computed layout (cheap arithmetic after `prepare`).
+  // `whiteSpace: 'pre-wrap'` so \n and tabs are honored just like a textarea.
   const { lineCount, height } = useMemo(() => {
     if (!text.trim()) return { lineCount: 0, height: 0 }
-    const prepared = prepare(text, FONT)
+    const prepared = prepare(text, FONT, { whiteSpace: 'pre-wrap' })
     return layout(prepared, width, LINE_HEIGHT)
   }, [text, width])
 
@@ -190,6 +191,8 @@ function Column({
               lineHeight: `${LINE_HEIGHT}px`,
               width: `${width}px`,
               maxWidth: '100%',
+              whiteSpace: 'pre-wrap',
+              wordWrap: 'break-word',
             }}
           >
             {text}
