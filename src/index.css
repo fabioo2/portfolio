@@ -71,6 +71,15 @@
   animation: cursor-blink 1.05s steps(2, end) infinite;
 }
 
+/* Skeleton shimmer (used in Lab demos) */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.animate-shimmer {
+  animation: shimmer 1.6s linear infinite;
+}
+
 /* Subtle scanline overlay for retro touches */
 .scanlines {
   background-image: repeating-linear-gradient(

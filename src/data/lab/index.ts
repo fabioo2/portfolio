@@ -1,4 +1,7 @@
+import type { ComponentType } from 'react'
 import welcomeMd from './welcome.md?raw'
+import pretextSkeletonMd from './pretext-skeleton-poc.md?raw'
+import SkeletonPretextDemo from '@/components/lab/demos/SkeletonPretextDemo'
 
 export type LabEntryType = 'thought' | 'poc' | 'random'
 
@@ -10,9 +13,21 @@ export type LabEntry = {
   excerpt: string
   tags?: string[]
   body: string
+  demo?: ComponentType
 }
 
 export const labEntries: LabEntry[] = [
+  {
+    slug: 'pretext-skeleton-poc',
+    title: 'Skeleton Loaders That Don\'t Lie',
+    type: 'poc',
+    date: '2026-05-23',
+    excerpt:
+      'Using @chenglou/pretext to pre-calculate skeleton placeholders that match the eventual content exactly — zero layout shift when the real text lands.',
+    tags: ['pretext', 'layout', 'performance', 'cls'],
+    body: pretextSkeletonMd,
+    demo: SkeletonPretextDemo,
+  },
   {
     slug: 'welcome',
     title: 'Welcome to the Lab',

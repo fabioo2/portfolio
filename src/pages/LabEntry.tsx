@@ -44,6 +44,12 @@ export default function LabEntry() {
         </ReactMarkdown>
       </div>
 
+      {entry.demo && (
+        <div className="my-2">
+          <entry.demo />
+        </div>
+      )}
+
       {entry.tags && entry.tags.length > 0 && (
         <div className="mt-10 pt-6 border-t border-border flex flex-wrap gap-2">
           {entry.tags.map((t) => (
