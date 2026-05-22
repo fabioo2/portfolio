@@ -259,7 +259,7 @@ const Column = forwardRef<HTMLDivElement, ColumnProps>(function Column(
 
 function SkeletonLines({ count }: { count: number }) {
   return (
-    <div className="p-0">
+    <div>
       {Array.from({ length: count }).map((_, i) => {
         const isLast = i === count - 1
         // last line is shorter to look natural; full-width otherwise
@@ -267,14 +267,20 @@ function SkeletonLines({ count }: { count: number }) {
         return (
           <div
             key={i}
-            className="bg-gradient-to-r from-muted via-muted-foreground/20 to-muted bg-[length:200%_100%] animate-shimmer rounded-sm"
             style={{
-              height: `${LINE_HEIGHT - 8}px`,
-              marginTop: i === 0 ? '4px' : '4px',
-              marginBottom: i === count - 1 ? '4px' : '4px',
-              width: `${widthPct}%`,
+              height: `${LINE_HEIGHT}px`,
+              display: 'flex',
+              alignItems: 'center',
             }}
-          />
+          >
+            <div
+              className="bg-gradient-to-r from-muted via-muted-foreground/20 to-muted bg-[length:200%_100%] animate-shimmer rounded-sm"
+              style={{
+                height: `${LINE_HEIGHT - 8}px`,
+                width: `${widthPct}%`,
+              }}
+            />
+          </div>
         )
       })}
     </div>
