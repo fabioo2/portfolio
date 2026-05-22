@@ -46,9 +46,11 @@ export function EntryCard({ entry }: { entry: LabEntry }) {
       <Card className="relative h-full flex flex-col transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md">
         {isUnread && (
           <span
-            className="absolute top-3 right-3 h-2.5 w-2.5 rounded-full bg-rose-500"
+            className="absolute top-3 right-3 inline-flex items-center px-1.5 py-[2px] rounded-full bg-violet-500/15 text-violet-600 dark:text-violet-400 text-[9px] font-mono font-semibold uppercase tracking-wider leading-none border border-violet-500/30"
             aria-label="New post"
-          />
+          >
+            New
+          </span>
         )}
         <CardContent className="p-6 flex-1 flex flex-col">
           <div className="flex items-center gap-2 mb-3 text-xs">
