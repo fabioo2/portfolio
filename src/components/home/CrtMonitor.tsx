@@ -9,43 +9,31 @@ import * as THREE from 'three'
 function Monitor() {
   const group = useRef<THREE.Group>(null)
 
-  // Terminal screen texture — everything baked in, centered
+  // Terminal screen texture — single centered line, terminal green
   const screenTexture = useMemo(() => {
     const c = document.createElement('canvas')
-    // Higher res for crisper text rendering
     c.width = 1024
     c.height = 768
     const ctx = c.getContext('2d')!
 
-    // Deep dark background with subtle vignette
-    const bg = ctx.createRadialGradient(512, 384, 160, 512, 384, 640)
-    bg.addColorStop(0, '#1a1612')
-    bg.addColorStop(1, '#0a0908')
-    ctx.fillStyle = bg
+    // Deep dark background — flat, no vignette (avoids gradient artifacts)
+    ctx.fillStyle = '#070a07'
     ctx.fillRect(0, 0, 1024, 768)
 
-    // Faint scanlines
-    ctx.fillStyle = 'rgba(255, 200, 120, 0.04)'
-    for (let y = 0; y < 768; y += 6) {
-      ctx.fillRect(0, y, 1024, 2)
+    // Subtle scanlines in the phosphor green tint
+    ctx.fillStyle = 'rgba(95, 255, 142, 0.04)'
+    for (let y = 0; y < 768; y += 4) {
+      ctx.fillRect(0, y, 1024, 1)
     }
 
-    // Centered text
+    // Single centered prompt line — terminal green
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-
-    // Title — warm amber with soft glow
-    ctx.fillStyle = '#ffc580'
-    ctx.font = "bold 76px 'Courier New', monospace"
-    ctx.shadowColor = 'rgba(255, 197, 128, 0.5)'
-    ctx.shadowBlur = 20
-    ctx.fillText("hi i'm fabio", 512, 340)
-    ctx.shadowBlur = 0
-
-    // Prompt line
-    ctx.fillStyle = '#9c8a6a'
-    ctx.font = "bold 52px 'Courier New', monospace"
-    ctx.fillText('> _', 512, 470)
+    ctx.fillStyle = '#7bff9c'
+    ctx.font = "bold 62px 'Courier New', monospace"
+    ctx.shadowColor = 'rgba(95, 255, 142, 0.55)'
+    ctx.shadowBlur = 18
+    ctx.fillText("> hi i'm fabio _", 512, 384)
 
     const tex = new THREE.CanvasTexture(c)
     tex.colorSpace = THREE.SRGBColorSpace
@@ -99,8 +87,8 @@ function Monitor() {
         <planeGeometry args={[1.22, 0.98]} />
         <meshStandardMaterial
           map={screenTexture}
-          emissive="#ffc580"
-          emissiveIntensity={0.12}
+          emissive="#5fff8e"
+          emissiveIntensity={0.18}
           emissiveMap={screenTexture}
           toneMapped={false}
           roughness={0.3}
@@ -148,9 +136,9 @@ function Monitor() {
         </group>
       ))}
 
-      {/* STAND NECK */}
-      <mesh position={[0, -0.35, -0.05]}>
-        <boxGeometry args={[0.38, 0.16, 0.32]} />
+      {/* STAND NECK — sits flush against the case bottom (y=-0.225) and meets the base */}
+      <mesh position={[0, -0.285, -0.05]}>
+        <boxGeometry args={[0.4, 0.2, 0.34]} />
         <meshPhysicalMaterial
           color="#d8d2c0"
           metalness={0.1}
@@ -158,18 +146,18 @@ function Monitor() {
         />
       </mesh>
 
-      {/* BASE */}
+      {/* BASE — sits directly under the neck */}
       <RoundedBox
         args={[1.0, 0.1, 0.7]}
         radius={0.04}
         smoothness={6}
-        position={[0, -0.485, -0.05]}
+        position={[0, -0.435, -0.05]}
       >
         {caseMat}
       </RoundedBox>
 
       {/* Subtle ground shadow */}
-      <mesh position={[0, -0.54, -0.05]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[0, -0.49, -0.05]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[0.7, 32]} />
         <meshBasicMaterial color="#000" transparent opacity={0.1} />
       </mesh>

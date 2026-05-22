@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { useParams, Link, Navigate } from 'react-router-dom'
-import { ArrowDown, ArrowLeft, ExternalLink } from 'lucide-react'
+import { useParams, Link, Navigate, useNavigate } from 'react-router-dom'
+import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
@@ -16,15 +16,9 @@ function formatDate(iso: string) {
   })
 }
 
-function scrollToDemo() {
-  const el = document.getElementById('lab-demo')
-  if (!el) return
-  const top = el.getBoundingClientRect().top + window.scrollY - 80
-  window.scrollTo({ top, behavior: 'smooth' })
-}
-
 export default function LabEntry() {
   const { slug } = useParams<{ slug: string }>()
+  const navigate = useNavigate()
   const entry = slug ? getLabEntry(slug) : undefined
 
   useEffect(() => {
@@ -53,12 +47,12 @@ export default function LabEntry() {
 
       {entry.demo && (
         <button
-          onClick={scrollToDemo}
+          onClick={() => navigate(`/lab/${entry.slug}/demo`)}
           className="group inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-md border border-border bg-muted/40 hover:bg-muted text-xs font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
         >
           <span className="text-[hsl(var(--brand))] font-semibold">TL;DR</span>
-          <span>skip to the demo</span>
-          <ArrowDown className="size-3 group-hover:translate-y-0.5 transition-transform" />
+          <span>open the standalone demo</span>
+          <ArrowRight className="size-3 group-hover:translate-x-0.5 transition-transform" />
         </button>
       )}
 
