@@ -1,0 +1,90 @@
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/cormorant-garamond/400.css';
+@import '@fontsource/cormorant-garamond/500.css';
+@import '@fontsource/cormorant-garamond/600.css';
+@import '@fontsource/cormorant-garamond/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 99%;
+    --foreground: 220 13% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 9%;
+    --primary: 220 13% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 220 13% 96%;
+    --secondary-foreground: 220 13% 9%;
+    --muted: 220 13% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 220 13% 96%;
+    --accent-foreground: 220 13% 9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 220 13% 9%;
+    --radius: 0.5rem;
+
+    /* Brand accent for headings, project tags, etc. */
+    --brand: 211 50% 23%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1, 'ss01' 1;
+  }
+
+  ::selection {
+    background-color: hsl(var(--brand) / 0.18);
+    color: hsl(var(--brand));
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+    font-feature-settings: 'liga' 1, 'kern' 1, 'dlig' 1;
+  }
+}
+
+/* Subtle scanline overlay for retro touches */
+.scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.04) 3px
+  );
+}
+
+/* Markdown body styles for Lab entries */
+.prose-lab {
+  @apply text-foreground;
+}
+.prose-lab h1 { @apply text-3xl font-serif font-semibold mt-8 mb-4; }
+.prose-lab h2 { @apply text-2xl font-serif font-semibold mt-6 mb-3; }
+.prose-lab h3 { @apply text-xl font-serif font-semibold mt-5 mb-2; }
+.prose-lab p { @apply leading-7 mb-4; }
+.prose-lab a { @apply text-[hsl(var(--brand))] underline underline-offset-4 hover:opacity-80; }
+.prose-lab ul { @apply list-disc pl-6 mb-4 space-y-1; }
+.prose-lab ol { @apply list-decimal pl-6 mb-4 space-y-1; }
+.prose-lab code { @apply px-1.5 py-0.5 rounded bg-muted text-sm font-mono; }
+.prose-lab pre { @apply p-4 rounded-lg bg-zinc-950 text-zinc-100 overflow-x-auto mb-4 text-sm; }
+.prose-lab pre code { @apply bg-transparent p-0; }
+.prose-lab blockquote { @apply border-l-2 border-border pl-4 italic text-muted-foreground my-4; }
+.prose-lab hr { @apply my-8 border-border; }
