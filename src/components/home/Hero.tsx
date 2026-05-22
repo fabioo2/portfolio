@@ -42,6 +42,7 @@ export function Hero() {
               className="font-serif text-5xl md:text-7xl font-medium tracking-tight leading-[1.05] min-h-[1.05em]"
               aria-label={profile.title}
             >
+              <span className="text-muted-foreground/70 mr-3 md:mr-4">&gt;</span>
               <span>{typed}</span>
               <span
                 className="animate-cursor inline-block ml-1 text-[hsl(var(--brand))] translate-y-[-0.05em]"
