@@ -36,6 +36,35 @@
 
     /* Brand accent for headings, project tags, etc. */
     --brand: 211 50% 23%;
+
+    color-scheme: light;
+  }
+
+  .dark {
+    --background: 220 14% 9%;
+    --foreground: 30 10% 94%;
+    --card: 220 14% 12%;
+    --card-foreground: 30 10% 94%;
+    --popover: 220 14% 12%;
+    --popover-foreground: 30 10% 94%;
+    --primary: 30 10% 94%;
+    --primary-foreground: 220 14% 9%;
+    --secondary: 220 13% 16%;
+    --secondary-foreground: 30 10% 94%;
+    --muted: 220 13% 16%;
+    --muted-foreground: 220 9% 62%;
+    --accent: 220 13% 16%;
+    --accent-foreground: 30 10% 94%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 30 10% 94%;
+    --border: 220 13% 20%;
+    --input: 220 13% 20%;
+    --ring: 30 10% 94%;
+
+    /* Brand accent lightened for legibility on dark */
+    --brand: 211 75% 74%;
+
+    color-scheme: dark;
   }
 
   * {

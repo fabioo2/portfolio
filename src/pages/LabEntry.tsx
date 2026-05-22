@@ -36,7 +36,7 @@ export default function LabEntry() {
   }
 
   return (
-    <article className="container py-12 md:py-16 max-w-3xl">
+    <article className="container py-8 md:py-16 max-w-3xl">
       <Link
         to="/lab"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"

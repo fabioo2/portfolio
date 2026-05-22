@@ -202,7 +202,7 @@ function Scene() {
 export function CrtMonitor() {
   return (
     <div
-      className="relative w-full aspect-square max-w-[360px] mx-auto md:mx-0 md:translate-x-[30px] cursor-grab active:cursor-grabbing"
+      className="relative w-full aspect-square max-w-[260px] sm:max-w-[300px] md:max-w-[360px] mx-auto md:mx-0 md:translate-x-[30px] cursor-grab active:cursor-grabbing"
       role="img"
       aria-label="Interactive 3D retro CRT monitor — drag to spin"
     >

@@ -23,7 +23,7 @@ export default function LabDemo() {
   }
 
   return (
-    <div className="container py-12 md:py-16 max-w-4xl">
+    <div className="container py-8 md:py-16 max-w-4xl">
       <Link
         to="/lab"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"

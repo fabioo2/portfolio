@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, forwardRef } from 'react'
 import { prepare, layout } from '@chenglou/pretext'
 import { Button } from '@/components/ui/button'
 
@@ -20,6 +20,28 @@ export default function SkeletonPretextDemo() {
   const [width, setWidth] = useState(420)
   const [phase, setPhase] = useState<Phase>('idle')
   const [trigger, setTrigger] = useState(0)
+  const [maxWidth, setMaxWidth] = useState(520)
+  const colRef = useRef<HTMLDivElement>(null)
+
+  // Clamp the width slider to the rendered column's actual available width
+  // so the demo doesn't lie about itself on small screens.
+  useEffect(() => {
+    function update() {
+      if (!colRef.current) return
+      const available = Math.floor(colRef.current.clientWidth - 8)
+      const mx = Math.max(200, Math.min(520, available))
+      setMaxWidth(mx)
+      setWidth((w) => Math.min(w, mx))
+    }
+    update()
+    const obs = new ResizeObserver(update)
+    if (colRef.current) obs.observe(colRef.current)
+    window.addEventListener('resize', update)
+    return () => {
+      obs.disconnect()
+      window.removeEventListener('resize', update)
+    }
+  }, [])
 
   // Pretext-computed layout (cheap arithmetic after `prepare`).
   // `whiteSpace: 'pre-wrap'` so \n and tabs are honored just like a textarea.
@@ -72,11 +94,11 @@ export default function SkeletonPretextDemo() {
             <input
               type="range"
               min={200}
-              max={520}
+              max={maxWidth}
               step={10}
               value={width}
               onChange={(e) => setWidth(Number(e.target.value))}
-              className="w-48 accent-[hsl(var(--brand))]"
+              className="w-32 sm:w-48 accent-[hsl(var(--brand))]"
             />
             <span className="font-mono text-xs tabular-nums text-muted-foreground w-12">
               {width}px
@@ -114,6 +136,7 @@ export default function SkeletonPretextDemo() {
           contentHeight={height}
         />
         <Column
+          ref={colRef}
           title="Pretext skeleton"
           subtitle="Pre-calculated exact size"
           tone="good"
@@ -129,17 +152,7 @@ export default function SkeletonPretextDemo() {
   )
 }
 
-function Column({
-  title,
-  subtitle,
-  tone,
-  phase,
-  text,
-  width,
-  skeletonLineCount,
-  skeletonHeight,
-  contentHeight,
-}: {
+type ColumnProps = {
   title: string
   subtitle: string
   tone: 'good' | 'bad'
@@ -149,7 +162,22 @@ function Column({
   skeletonLineCount: number
   skeletonHeight: number
   contentHeight: number
-}) {
+}
+
+const Column = forwardRef<HTMLDivElement, ColumnProps>(function Column(
+  {
+    title,
+    subtitle,
+    tone,
+    phase,
+    text,
+    width,
+    skeletonLineCount,
+    skeletonHeight,
+    contentHeight,
+  },
+  ref
+) {
   // The "container" height in the loaded state is the actual content height.
   // In the loading state, it's the skeleton height (which may be wrong for naive!).
   const containerHeight =
@@ -158,7 +186,7 @@ function Column({
   const isLayoutShift = phase === 'loaded' && tone === 'bad' && Math.abs(skeletonHeight - contentHeight) > 4
 
   return (
-    <div className="p-5 md:p-6">
+    <div ref={ref} className="p-5 md:p-6">
       <div className="flex items-baseline justify-between gap-3 mb-4">
         <div>
           <div className="font-serif text-lg font-medium">{title}</div>
@@ -218,7 +246,7 @@ function Column({
       </div>
     </div>
   )
-}
+})
 
 function SkeletonLines({ count }: { count: number }) {
   return (

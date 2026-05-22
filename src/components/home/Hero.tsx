@@ -21,12 +21,13 @@ export function Hero() {
 
   return (
     <section className="bg-muted/40 border-b border-border/60">
-      <div className="container py-16 md:py-24">
-        <div className="grid md:grid-cols-[280px_1fr] gap-10 md:gap-14 items-center">
+      <div className="container py-10 md:py-24">
+        <div className="grid md:grid-cols-[280px_1fr] gap-6 md:gap-14 items-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="order-1 md:order-none"
           >
             <Suspense fallback={<MonitorFallback />}>
               <CrtMonitor />
@@ -37,12 +38,13 @@ export function Hero() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15, ease: 'easeOut' }}
+            className="order-2 md:order-none text-center md:text-left"
           >
             <h1
-              className="font-serif text-5xl md:text-7xl font-medium tracking-tight leading-[1.05] min-h-[1.05em]"
+              className="font-serif text-4xl sm:text-5xl md:text-7xl font-medium tracking-tight leading-[1.05] min-h-[1.05em]"
               aria-label={profile.title}
             >
-              <span className="text-muted-foreground/70 mr-3 md:mr-4">&gt;</span>
+              <span className="text-muted-foreground/70 mr-2 md:mr-4">&gt;</span>
               <span>{typed}</span>
               <span
                 className="animate-cursor inline-block ml-1 text-[hsl(var(--brand))] translate-y-[-0.05em]"
@@ -51,10 +53,10 @@ export function Hero() {
                 _
               </span>
             </h1>
-            <p className="mt-5 max-w-xl text-muted-foreground text-base md:text-lg leading-relaxed">
+            <p className="mt-4 md:mt-5 max-w-xl mx-auto md:mx-0 text-muted-foreground text-base md:text-lg leading-relaxed">
               {profile.tagline}
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-6 md:mt-8 flex flex-wrap justify-center md:justify-start gap-3">
               <Button size="lg" onClick={scrollHandler('experience')}>
                 View Experience
               </Button>

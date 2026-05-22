@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { scrollToId } from '@/lib/scroll'
 import { useHasUnreadLabPost } from '@/lib/labNotification'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { profile } from '@/data/resume'
 
 function LabLink({
@@ -78,11 +79,13 @@ export function Navbar() {
             </a>
           ))}
           <LabLink isActive={location.pathname.startsWith('/lab')} />
+          <ThemeToggle />
         </nav>
 
-        {/* Mobile: just show Lab link */}
-        <nav className="md:hidden flex items-center gap-4 text-sm">
+        {/* Mobile: Lab link + theme toggle */}
+        <nav className="md:hidden flex items-center gap-3 text-sm">
           <LabLink isActive={location.pathname.startsWith('/lab')} />
+          <ThemeToggle />
         </nav>
       </div>
     </header>

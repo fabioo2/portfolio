@@ -6,6 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Fabio Kim — Software Developer based in Toronto. Full-stack engineering, serverless on AWS, accessible UI." />
     <title>Fabio Kim — Software Developer</title>
+    <script>
+      // Sync theme class before paint to avoid flash of incorrect theme
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (stored === 'dark' || (!stored && prefersDark)) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
