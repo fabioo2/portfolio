@@ -1,15 +1,202 @@
 import { Suspense, useRef, useState, useEffect, useMemo } from 'react'
-import { Canvas, useFrame, type ThreeEvent } from '@react-three/fiber'
-import { RoundedBox } from '@react-three/drei'
+import { Canvas, useFrame } from '@react-three/fiber'
+import { RoundedBox, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 
 /**
- * A retro CRT monitor with curved bezel, phosphor screen, and chunky case.
- * Inspired by 80s/90s monochrome terminals and the original Macintosh silhouette.
+ * A retro CRT monitor — drag to spin, double-click to recenter.
+ * Auto-rotates gently until user interacts.
  */
-function Monitor({ mouse }: { mouse: { x: number; y: number } }) {
+function Monitor() {
   const group = useRef<THREE.Group>(null)
+  const cursorRef = useRef<THREE.Mesh>(null)
   const t = useRef(0)
+
+  // Terminal screen texture — dark with amber/cream "terminal" text
+  const screenTexture = useMemo(() => {
+    const c = document.createElement('canvas')
+    c.width = 512
+    c.height = 384
+    const ctx = c.getContext('2d')!
+
+    // Deep dark background with subtle gradient
+    const bg = ctx.createRadialGradient(256, 192, 80, 256, 192, 320)
+    bg.addColorStop(0, '#181612')
+    bg.addColorStop(1, '#0a0908')
+    ctx.fillStyle = bg
+    ctx.fillRect(0, 0, 512, 384)
+
+    // Faint scanlines
+    ctx.fillStyle = 'rgba(255, 200, 120, 0.04)'
+    for (let y = 0; y < 384; y += 3) {
+      ctx.fillRect(0, y, 512, 1)
+    }
+
+    // Terminal text — warm amber
+    ctx.fillStyle = '#ffc580'
+    ctx.font = 'bold 32px "Courier New", monospace'
+    ctx.shadowColor = '#ffc58066'
+    ctx.shadowBlur = 8
+    ctx.fillText("hi i'm fabio", 60, 180)
+    ctx.shadowBlur = 0
+
+    // Prompt line
+    ctx.fillStyle = '#9c8a6a'
+    ctx.font = 'bold 22px "Courier New", monospace'
+    ctx.fillText('>', 60, 240)
+
+    const tex = new THREE.CanvasTexture(c)
+    tex.colorSpace = THREE.SRGBColorSpace
+    tex.anisotropy = 4
+    return tex
+  }, [])
+
+  useFrame((_, delta) => {
+    t.current += delta
+    // Blink cursor every ~0.6s
+    if (cursorRef.current) {
+      const visible = Math.floor(t.current * 1.6) % 2 === 0
+      cursorRef.current.visible = visible
+    }
+  })
+
+  // Slightly warm off-white case material with subtle iridescence
+  const caseMat = (
+    <meshPhysicalMaterial
+      color="#e8e3d2"
+      metalness={0.1}
+      roughness={0.55}
+      iridescence={0.2}
+      iridescenceIOR={1.2}
+      iridescenceThicknessRange={[200, 500]}
+      clearcoat={0.3}
+      clearcoatRoughness={0.6}
+    />
+  )
+
+  const darkPlasticMat = (
+    <meshStandardMaterial color="#2a2823" roughness={0.6} metalness={0.1} />
+  )
+
+  return (
+    <group ref={group} position={[0, 0, 0]}>
+      {/* MAIN CASE */}
+      <RoundedBox args={[1.6, 1.35, 1.25]} radius={0.12} smoothness={6} position={[0, 0.45, 0]}>
+        {caseMat}
+      </RoundedBox>
+
+      {/* INNER BEZEL — slightly darker rim around the screen */}
+      <RoundedBox
+        args={[1.35, 1.1, 0.04]}
+        radius={0.08}
+        smoothness={6}
+        position={[0, 0.5, 0.63]}
+      >
+        <meshPhysicalMaterial
+          color="#cfc8b6"
+          metalness={0.1}
+          roughness={0.55}
+        />
+      </RoundedBox>
+
+      {/* SCREEN PANEL — slightly recessed flat panel with the terminal texture */}
+      <mesh position={[0, 0.5, 0.66]}>
+        <planeGeometry args={[1.22, 0.98]} />
+        <meshStandardMaterial
+          map={screenTexture}
+          emissive="#ffc580"
+          emissiveIntensity={0.12}
+          emissiveMap={screenTexture}
+          toneMapped={false}
+          roughness={0.3}
+          metalness={0}
+        />
+      </mesh>
+
+      {/* Blinking cursor underline */}
+      <mesh ref={cursorRef} position={[-0.45, 0.32, 0.665]}>
+        <planeGeometry args={[0.045, 0.06]} />
+        <meshBasicMaterial color="#ffc580" toneMapped={false} />
+      </mesh>
+
+      {/* Soft screen reflection sheen — top-left */}
+      <mesh position={[-0.3, 0.74, 0.667]} rotation={[0, 0, -0.2]}>
+        <planeGeometry args={[0.5, 0.16]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.05} />
+      </mesh>
+
+      {/* VENTILATION SLOTS on top */}
+      {[-0.42, -0.21, 0, 0.21, 0.42].map((x) => (
+        <mesh key={`vent-${x}`} position={[x, 1.122, -0.15]}>
+          <boxGeometry args={[0.1, 0.012, 0.55]} />
+          {darkPlasticMat}
+        </mesh>
+      ))}
+
+      {/* BRAND PLATE — embossed silver bar under screen */}
+      <mesh position={[-0.45, -0.05, 0.625]}>
+        <planeGeometry args={[0.3, 0.04]} />
+        <meshStandardMaterial color="#9a9486" metalness={0.6} roughness={0.4} />
+      </mesh>
+
+      {/* POWER LED + button on lower-right */}
+      <group position={[0.55, -0.05, 0.626]}>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.04, 0.045, 0.012, 24]} />
+          <meshStandardMaterial color="#3a3630" metalness={0.4} roughness={0.5} />
+        </mesh>
+        <mesh position={[0, 0, 0.008]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.013, 0.013, 0.004, 16]} />
+          <meshBasicMaterial color="#5fff8e" toneMapped={false} />
+        </mesh>
+      </group>
+
+      {/* CALIBRATION KNOBS — lower-left of front */}
+      {[-0.05, 0.05].map((dx, i) => (
+        <group key={`knob-${i}`} position={[-0.6 + dx * 1.4, -0.05, 0.625]}>
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.03, 0.032, 0.014, 18]} />
+            <meshStandardMaterial color="#3a3630" metalness={0.35} roughness={0.55} />
+          </mesh>
+          <mesh position={[0, 0.022, 0.008]}>
+            <planeGeometry args={[0.005, 0.022]} />
+            <meshBasicMaterial color="#cfc8b6" />
+          </mesh>
+        </group>
+      ))}
+
+      {/* STAND NECK */}
+      <mesh position={[0, -0.35, -0.05]}>
+        <boxGeometry args={[0.38, 0.16, 0.32]} />
+        <meshPhysicalMaterial
+          color="#d8d2c0"
+          metalness={0.1}
+          roughness={0.6}
+        />
+      </mesh>
+
+      {/* BASE */}
+      <RoundedBox
+        args={[1.0, 0.1, 0.7]}
+        radius={0.04}
+        smoothness={6}
+        position={[0, -0.485, -0.05]}
+      >
+        {caseMat}
+      </RoundedBox>
+
+      {/* Subtle ground shadow */}
+      <mesh position={[0, -0.54, -0.05]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.7, 32]} />
+        <meshBasicMaterial color="#000" transparent opacity={0.1} />
+      </mesh>
+    </group>
+  )
+}
+
+function Scene() {
+  const controls = useRef<any>(null)
+  const [interacted, setInteracted] = useState(false)
   const [reduced, setReduced] = useState(false)
 
   useEffect(() => {
@@ -20,230 +207,43 @@ function Monitor({ mouse }: { mouse: { x: number; y: number } }) {
     return () => m.removeEventListener('change', handler)
   }, [])
 
-  // Generate a phosphor screen texture: faint scanlines + soft vignette
-  const screenTexture = useMemo(() => {
-    const c = document.createElement('canvas')
-    c.width = 256
-    c.height = 192
-    const ctx = c.getContext('2d')!
-    // base phosphor wash
-    const grad = ctx.createRadialGradient(128, 96, 20, 128, 96, 160)
-    grad.addColorStop(0, '#c8ffe1')
-    grad.addColorStop(0.6, '#3eea8a')
-    grad.addColorStop(1, '#062c1a')
-    ctx.fillStyle = grad
-    ctx.fillRect(0, 0, 256, 192)
-    // scanlines
-    ctx.fillStyle = 'rgba(0,0,0,0.18)'
-    for (let y = 0; y < 192; y += 2) {
-      ctx.fillRect(0, y, 256, 1)
-    }
-    // some "text" suggestion
-    ctx.fillStyle = '#9affc2'
-    ctx.font = 'bold 14px monospace'
-    ctx.fillText('> HELLO_WORLD', 24, 64)
-    ctx.fillText('> _', 24, 92)
-    const tex = new THREE.CanvasTexture(c)
-    tex.colorSpace = THREE.SRGBColorSpace
-    return tex
-  }, [])
-
-  useFrame((_, delta) => {
-    if (!group.current) return
-    if (!reduced) {
-      t.current += delta
-      group.current.rotation.y += delta * 0.35
-      group.current.rotation.x = Math.sin(t.current * 0.6) * 0.06
-    }
-    const targetX = mouse.y * 0.2
-    group.current.rotation.x += (targetX - group.current.rotation.x) * 0.04
-  })
-
-  // Materials
-  const caseMat = (
-    <meshPhysicalMaterial
-      color="#dad6c8"
-      metalness={0.15}
-      roughness={0.45}
-      iridescence={0.7}
-      iridescenceIOR={1.3}
-      iridescenceThicknessRange={[100, 600]}
-      clearcoat={0.4}
-      clearcoatRoughness={0.5}
-    />
-  )
-
   return (
-    <group ref={group} position={[0, -0.1, 0]} scale={1.05}>
-      {/* MAIN CASE — slightly tapered with rounded edges */}
-      <RoundedBox args={[1.7, 1.45, 1.3]} radius={0.14} smoothness={6}>
-        {caseMat}
-      </RoundedBox>
-
-      {/* Inner bezel ring around screen (slightly darker, recessed) */}
-      <RoundedBox
-        args={[1.45, 1.15, 0.06]}
-        radius={0.1}
-        smoothness={6}
-        position={[0, 0.08, 0.66]}
-      >
-        <meshPhysicalMaterial
-          color="#b8b3a3"
-          metalness={0.2}
-          roughness={0.4}
-          iridescence={0.5}
-          iridescenceIOR={1.3}
-        />
-      </RoundedBox>
-
-      {/* Screen recess (dark inset) */}
-      <mesh position={[0, 0.08, 0.685]}>
-        <planeGeometry args={[1.32, 1.02]} />
-        <meshBasicMaterial color="#0a0e0a" />
-      </mesh>
-
-      {/* CURVED SCREEN — slightly convex sphere segment for that retro CRT bulge */}
-      <CurvedScreen position={[0, 0.08, 0.7]} texture={screenTexture} />
-
-      {/* Screen glare highlight (soft, top-left) */}
-      <mesh position={[-0.32, 0.32, 0.715]} rotation={[0, 0, -0.25]}>
-        <planeGeometry args={[0.4, 0.18]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.06} />
-      </mesh>
-
-      {/* VENTILATION SLOTS on top */}
-      {[-0.35, -0.18, 0, 0.18, 0.35].map((x) => (
-        <mesh key={`vent-${x}`} position={[x, 0.73, -0.2]}>
-          <boxGeometry args={[0.08, 0.015, 0.5]} />
-          <meshStandardMaterial color="#1a1d1a" roughness={0.8} />
-        </mesh>
-      ))}
-
-      {/* BRAND PLATE — small embossed rectangle bottom-center */}
-      <mesh position={[0, -0.6, 0.66]}>
-        <planeGeometry args={[0.42, 0.05]} />
-        <meshBasicMaterial color="#7a7568" />
-      </mesh>
-
-      {/* Brand text suggestion */}
-      <mesh position={[0, -0.6, 0.661]}>
-        <planeGeometry args={[0.36, 0.025]} />
-        <meshBasicMaterial color="#3d3a32" />
-      </mesh>
-
-      {/* POWER BUTTON — recessed circle bottom-right */}
-      <mesh position={[0.6, -0.6, 0.665]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.045, 0.05, 0.015, 24]} />
-        <meshStandardMaterial color="#5a554b" metalness={0.5} roughness={0.4} />
-      </mesh>
-      <mesh position={[0.6, -0.6, 0.672]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.018, 0.018, 0.005, 16]} />
-        <meshBasicMaterial color="#ff5a3a" />
-      </mesh>
-
-      {/* TWO ADJUSTMENT KNOBS — bottom-left of front */}
-      {[-0.6, -0.48].map((x, i) => (
-        <group key={`knob-${i}`} position={[x, -0.6, 0.665]}>
-          <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <cylinderGeometry args={[0.035, 0.035, 0.02, 18]} />
-            <meshStandardMaterial color="#3a362f" metalness={0.4} roughness={0.5} />
-          </mesh>
-          {/* tick mark on knob */}
-          <mesh position={[0, 0.025, 0.011]}>
-            <planeGeometry args={[0.005, 0.025]} />
-            <meshBasicMaterial color="#9a9486" />
-          </mesh>
-        </group>
-      ))}
-
-      {/* STAND NECK — connects monitor to base */}
-      <mesh position={[0, -0.83, -0.05]}>
-        <boxGeometry args={[0.42, 0.16, 0.35]} />
-        <meshPhysicalMaterial
-          color="#d2cdbf"
-          metalness={0.15}
-          roughness={0.5}
-          iridescence={0.5}
-          iridescenceIOR={1.3}
-        />
-      </mesh>
-
-      {/* BASE — wide, low, with rounded edges */}
-      <RoundedBox
-        args={[1.05, 0.13, 0.7]}
-        radius={0.04}
-        smoothness={6}
-        position={[0, -0.97, -0.05]}
-      >
-        {caseMat}
-      </RoundedBox>
-
-      {/* Subtle shadow disc under base */}
-      <mesh position={[0, -1.045, -0.05]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.65, 32]} />
-        <meshBasicMaterial color="#000" transparent opacity={0.12} />
-      </mesh>
-    </group>
-  )
-}
-
-function CurvedScreen({
-  position,
-  texture,
-}: {
-  position: [number, number, number]
-  texture: THREE.Texture
-}) {
-  // Curved plane via sphere geometry slice — gives that retro CRT bulge
-  const geom = useMemo(() => {
-    const g = new THREE.SphereGeometry(2.2, 32, 16, Math.PI / 2 - 0.18, 0.36, Math.PI / 2 - 0.12, 0.24)
-    return g
-  }, [])
-
-  return (
-    <mesh geometry={geom} position={position} rotation={[0, 0, 0]} scale={[1, 1, -1]}>
-      <meshStandardMaterial
-        map={texture}
-        emissive="#3eea8a"
-        emissiveIntensity={0.45}
-        emissiveMap={texture}
-        toneMapped={false}
-        roughness={0.2}
-        metalness={0}
+    <>
+      <Monitor />
+      <OrbitControls
+        ref={controls}
+        enableZoom={false}
+        enablePan={false}
+        enableDamping
+        dampingFactor={0.08}
+        minPolarAngle={Math.PI / 3}
+        maxPolarAngle={Math.PI / 1.8}
+        autoRotate={!interacted && !reduced}
+        autoRotateSpeed={0.9}
+        onStart={() => setInteracted(true)}
       />
-    </mesh>
+    </>
   )
 }
 
 export function CrtMonitor() {
-  const [mouse, setMouse] = useState({ x: 0, y: 0 })
-
-  const onMove = (e: ThreeEvent<PointerEvent>) => {
-    const x = (e.uv?.x ?? 0.5) * 2 - 1
-    const y = (e.uv?.y ?? 0.5) * 2 - 1
-    setMouse({ x, y })
-  }
-
   return (
     <div
-      className="relative w-full aspect-square max-w-[340px] mx-auto md:mx-0"
-      aria-hidden="true"
+      className="relative w-full aspect-square max-w-[360px] mx-auto md:mx-0 cursor-grab active:cursor-grabbing"
+      role="img"
+      aria-label="Interactive 3D retro CRT monitor — drag to spin"
     >
       <Canvas
-        camera={{ position: [0, 0.1, 3.6], fov: 38 }}
+        camera={{ position: [0, 0.4, 4.0], fov: 38 }}
         gl={{ alpha: true, antialias: true }}
         dpr={[1, 2]}
       >
-        <ambientLight intensity={0.55} />
-        <directionalLight position={[3, 4, 5]} intensity={1.1} castShadow />
-        <directionalLight position={[-3, -1, 4]} intensity={0.4} color="#a8c9ff" />
-        <directionalLight position={[0, -3, 2]} intensity={0.2} color="#ffe6b8" />
+        <ambientLight intensity={0.6} />
+        <directionalLight position={[3, 5, 4]} intensity={1.2} />
+        <directionalLight position={[-4, 2, 3]} intensity={0.45} color="#cfe0ff" />
+        <directionalLight position={[0, -2, 2]} intensity={0.2} color="#ffe0b8" />
         <Suspense fallback={null}>
-          <Monitor mouse={mouse} />
-          <mesh onPointerMove={onMove} position={[0, 0, 1]}>
-            <planeGeometry args={[10, 10]} />
-            <meshBasicMaterial transparent opacity={0} />
-          </mesh>
+          <Scene />
         </Suspense>
       </Canvas>
     </div>
