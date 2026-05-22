@@ -28,7 +28,7 @@ export function Projects() {
           </a>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-5">
+        <div className="grid md:grid-cols-2 gap-5 auto-rows-fr">
           {projects.map((p, i) => (
             <motion.div
               key={p.name}
@@ -36,9 +36,15 @@ export function Projects() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.45, delay: i * 0.05 }}
+              className="h-full"
             >
               {p.url ? (
-                <a href={p.url} target="_blank" rel="noreferrer" className="block group">
+                <a
+                  href={p.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block group h-full"
+                >
                   <ProjectInner project={p} />
                 </a>
               ) : (
@@ -54,7 +60,7 @@ export function Projects() {
 
 function ProjectInner({ project: p }: { project: typeof projects[number] }) {
   return (
-    <Card className="h-full transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md hover:-translate-y-0.5 hover:shadow-md">
+    <Card className="h-full flex flex-col transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md hover:-translate-y-0.5 hover:shadow-md">
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <CardTitle>{p.name}</CardTitle>
@@ -66,8 +72,10 @@ function ProjectInner({ project: p }: { project: typeof projects[number] }) {
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground leading-relaxed mb-4">{p.description}</p>
+      <CardContent className="flex-1 flex flex-col">
+        <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
+          {p.description}
+        </p>
         <div className="flex flex-wrap gap-1.5">
           {p.tags.map((t) => (
             <Badge key={t} variant="outline">

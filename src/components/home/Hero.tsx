@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { scrollHandler } from '@/lib/scroll'
 import { profile } from '@/data/resume'
 
 // Lazy-load the 3D monitor so three.js doesn't block first paint
@@ -41,11 +42,11 @@ export function Hero() {
               {profile.tagline}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg">
-                <a href="#experience">View Experience</a>
+              <Button size="lg" onClick={scrollHandler('experience')}>
+                View Experience
               </Button>
-              <Button asChild variant="outline" size="lg">
-                <a href="#summary">About Me</a>
+              <Button variant="outline" size="lg" onClick={scrollHandler('summary')}>
+                About Me
               </Button>
             </div>
           </motion.div>

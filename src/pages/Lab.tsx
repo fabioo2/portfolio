@@ -42,7 +42,7 @@ export default function Lab() {
                 Nothing here yet — check back soon.
               </p>
             ) : (
-              <div className="grid md:grid-cols-2 gap-5">
+              <div className="grid md:grid-cols-2 gap-5 auto-rows-fr">
                 {filtered.map((entry) => (
                   <EntryCard key={entry.slug} entry={entry} />
                 ))}

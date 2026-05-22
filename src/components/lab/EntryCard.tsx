@@ -20,9 +20,9 @@ function formatDate(iso: string) {
 
 export function EntryCard({ entry }: { entry: LabEntry }) {
   return (
-    <Link to={`/lab/${entry.slug}`} className="block group">
-      <Card className="h-full transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md">
-        <CardContent className="p-6">
+    <Link to={`/lab/${entry.slug}`} className="block group h-full">
+      <Card className="h-full flex flex-col transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md">
+        <CardContent className="p-6 flex-1 flex flex-col">
           <div className="flex items-center gap-2 mb-3 text-xs">
             <Badge variant="brand">{typeLabel[entry.type]}</Badge>
             <span className="font-mono text-muted-foreground">{formatDate(entry.date)}</span>
@@ -30,11 +30,11 @@ export function EntryCard({ entry }: { entry: LabEntry }) {
           <h3 className="font-serif text-xl font-medium leading-snug mb-2 group-hover:underline underline-offset-4 decoration-2">
             {entry.title}
           </h3>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+          <p className="text-sm text-muted-foreground leading-relaxed mb-3 flex-1">
             {entry.excerpt}
           </p>
           {entry.tags && entry.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
+            <div className="flex flex-wrap gap-1.5 mt-auto">
               {entry.tags.map((t) => (
                 <span key={t} className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                   #{t}
