@@ -4,7 +4,6 @@ export function Footer() {
   return (
     <footer className="border-t border-border/60 mt-20">
       <div className="container py-10 flex flex-col items-center gap-4 text-sm text-muted-foreground">
-        <p className="font-serif italic">Efficiency through engineering.</p>
         <div className="flex items-center gap-6">
           <a href={profile.links.github} target="_blank" rel="noreferrer" className="hover:text-foreground transition-colors">
             GitHub
