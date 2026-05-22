@@ -25,8 +25,18 @@ export function markLabSeen() {
 }
 
 /**
+ * Returns true when the given entry slug is the newest one AND it's unread
+ * for this user. Used by EntryCard to put a red dot on the freshest post.
+ */
+export function useIsUnreadLatest(slug: string): boolean {
+  const hasUnread = useHasUnreadLabPost()
+  if (!hasUnread) return false
+  return getLatestLabEntry()?.slug === slug
+}
+
+/**
  * Returns true when there's a lab post newer than what this user has seen.
- * The Navbar uses this to decide whether to show the bouncing red dot.
+ * The Navbar uses this to decide whether to bounce the Lab label.
  */
 export function useHasUnreadLabPost(): boolean {
   const [hasUnread, setHasUnread] = useState(false)

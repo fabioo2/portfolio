@@ -21,15 +21,12 @@ function LabLink({
         className
       )}
     >
-      Lab
+      <span className={hasUnread ? 'animate-lab-text' : undefined}>Lab</span>
       {hasUnread && (
         <span
-          className="absolute -top-1 -right-2.5 inline-flex items-center justify-center"
+          className="absolute -top-1 -right-2.5 h-2 w-2 rounded-full bg-rose-500"
           aria-label="New post in the Lab"
-        >
-          <span className="absolute inline-flex h-2 w-2 rounded-full bg-rose-500 animate-lab-dot-ping" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500 animate-lab-dot" />
-        </span>
+        />
       )}
     </Link>
   )

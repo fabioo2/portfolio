@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { useIsUnreadLatest } from '@/lib/labNotification'
 import type { LabEntry } from '@/data/lab'
 
 const typeLabel: Record<LabEntry['type'], string> = {
@@ -21,6 +22,7 @@ function formatDate(iso: string) {
 
 export function EntryCard({ entry }: { entry: LabEntry }) {
   const navigate = useNavigate()
+  const isUnread = useIsUnreadLatest(entry.slug)
 
   // If the entry has a demo, the card primary action is "Try it" (standalone view).
   // Otherwise the card just opens the article.
@@ -47,7 +49,13 @@ export function EntryCard({ entry }: { entry: LabEntry }) {
       }}
       className="block group h-full cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
     >
-      <Card className="h-full flex flex-col transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md">
+      <Card className="relative h-full flex flex-col transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md">
+        {isUnread && (
+          <span
+            className="absolute top-3 right-3 h-2.5 w-2.5 rounded-full bg-rose-500"
+            aria-label="New post"
+          />
+        )}
         <CardContent className="p-6 flex-1 flex flex-col">
           <div className="flex items-center gap-2 mb-3 text-xs">
             <Badge variant="brand">{typeLabel[entry.type]}</Badge>
