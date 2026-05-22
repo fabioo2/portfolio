@@ -24,6 +24,35 @@ export const profile = {
   },
 }
 
+export type HobbyIcon = 'gamepad' | 'cpu' | 'fish' | 'coffee'
+
+export const personal = {
+  intro:
+    "Off the clock, I'm in Windsor, Ontario with my wife and our two cats, Blanket and Buttons. A few things I get into when I'm not coding:",
+  hobbies: [
+    {
+      icon: 'gamepad' as HobbyIcon,
+      label: 'Gaming',
+      detail: 'Diablo 4 and Old School RuneScape',
+    },
+    {
+      icon: 'cpu' as HobbyIcon,
+      label: 'IoT Tinkering',
+      detail: 'smart-home experiments — my GitHub is mostly Discord bots',
+    },
+    {
+      icon: 'fish' as HobbyIcon,
+      label: 'Fishing',
+      detail: 'still chasing my first walleye',
+    },
+    {
+      icon: 'coffee' as HobbyIcon,
+      label: 'Espresso',
+      detail: 'an ongoing hyperfixation',
+    },
+  ],
+}
+
 export type ProjectCard = {
   name: string
   period: string
