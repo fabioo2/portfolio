@@ -43,17 +43,13 @@ function Monitor() {
     return tex
   }, [])
 
-  // Slightly warm off-white case material with subtle iridescence
+  // Slightly warm off-white case material — no iridescence (was shimmering
+  // on the case edges during rotation).
   const caseMat = (
-    <meshPhysicalMaterial
+    <meshStandardMaterial
       color="#e8e3d2"
-      metalness={0.1}
-      roughness={0.55}
-      iridescence={0.2}
-      iridescenceIOR={1.2}
-      iridescenceThicknessRange={[200, 500]}
-      clearcoat={0.3}
-      clearcoatRoughness={0.6}
+      metalness={0.12}
+      roughness={0.5}
     />
   )
 
@@ -68,30 +64,30 @@ function Monitor() {
         {caseMat}
       </RoundedBox>
 
-      {/* INNER BEZEL — slightly darker rim around the screen */}
+      {/* INNER BEZEL — darker frame; sits flush against the case front */}
       <RoundedBox
-        args={[1.35, 1.1, 0.04]}
+        args={[1.35, 1.1, 0.05]}
         radius={0.08}
         smoothness={6}
-        position={[0, 0.5, 0.63]}
+        position={[0, 0.5, 0.62]}
       >
-        <meshPhysicalMaterial
+        <meshStandardMaterial
           color="#cfc8b6"
-          metalness={0.1}
-          roughness={0.55}
+          metalness={0.08}
+          roughness={0.6}
         />
       </RoundedBox>
 
-      {/* SCREEN PANEL — slightly recessed flat panel with the terminal texture */}
-      <mesh position={[0, 0.5, 0.66]}>
+      {/* SCREEN PANEL — pushed forward enough to avoid Z-fighting with bezel */}
+      <mesh position={[0, 0.5, 0.7]} renderOrder={1}>
         <planeGeometry args={[1.22, 0.98]} />
         <meshStandardMaterial
           map={screenTexture}
           emissive="#5fff8e"
-          emissiveIntensity={0.18}
+          emissiveIntensity={0.2}
           emissiveMap={screenTexture}
           toneMapped={false}
-          roughness={0.3}
+          roughness={0.35}
           metalness={0}
         />
       </mesh>
@@ -195,7 +191,7 @@ export function CrtMonitor() {
       aria-label="Interactive 3D retro CRT monitor — drag to spin"
     >
       <Canvas
-        camera={{ position: [0, 0.4, 4.0], fov: 38 }}
+        camera={{ position: [0, 0.4, 4.0], fov: 38, near: 0.5, far: 50 }}
         gl={{ alpha: true, antialias: true }}
         dpr={[1, 2]}
       >
