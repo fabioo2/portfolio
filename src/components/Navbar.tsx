@@ -1,7 +1,39 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { scrollToId } from '@/lib/scroll'
+import { useHasUnreadLabPost } from '@/lib/labNotification'
 import { profile } from '@/data/resume'
+
+function LabLink({
+  className,
+  isActive,
+}: {
+  className?: string
+  isActive: boolean
+}) {
+  const hasUnread = useHasUnreadLabPost()
+  return (
+    <Link
+      to="/lab"
+      className={cn(
+        'relative text-muted-foreground hover:text-foreground transition-colors',
+        isActive && 'text-foreground underline underline-offset-8 decoration-2',
+        className
+      )}
+    >
+      Lab
+      {hasUnread && (
+        <span
+          className="absolute -top-1 -right-2.5 inline-flex items-center justify-center"
+          aria-label="New post in the Lab"
+        >
+          <span className="absolute inline-flex h-2 w-2 rounded-full bg-rose-500 animate-lab-dot-ping" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500 animate-lab-dot" />
+        </span>
+      )}
+    </Link>
+  )
+}
 
 const homeAnchors = [
   { id: 'experience', label: 'Experience & Projects' },
@@ -48,29 +80,12 @@ export function Navbar() {
               {a.label}
             </a>
           ))}
-          <Link
-            to="/lab"
-            className={cn(
-              'text-muted-foreground hover:text-foreground transition-colors',
-              location.pathname.startsWith('/lab') &&
-                'text-foreground underline underline-offset-8 decoration-2'
-            )}
-          >
-            Lab
-          </Link>
+          <LabLink isActive={location.pathname.startsWith('/lab')} />
         </nav>
 
         {/* Mobile: just show Lab link */}
         <nav className="md:hidden flex items-center gap-4 text-sm">
-          <Link
-            to="/lab"
-            className={cn(
-              'text-muted-foreground',
-              location.pathname.startsWith('/lab') && 'text-foreground'
-            )}
-          >
-            Lab
-          </Link>
+          <LabLink isActive={location.pathname.startsWith('/lab')} />
         </nav>
       </div>
     </header>

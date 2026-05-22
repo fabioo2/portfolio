@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { ArrowDown, ArrowLeft, ExternalLink } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
@@ -5,6 +6,7 @@ import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 import { Badge } from '@/components/ui/badge'
 import { getLabEntry } from '@/data/lab'
+import { markLabSeen } from '@/lib/labNotification'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', {
@@ -24,6 +26,10 @@ function scrollToDemo() {
 export default function LabEntry() {
   const { slug } = useParams<{ slug: string }>()
   const entry = slug ? getLabEntry(slug) : undefined
+
+  useEffect(() => {
+    markLabSeen()
+  }, [])
 
   if (!entry) {
     return <Navigate to="/lab" replace />

@@ -1,13 +1,18 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { EntryCard } from '@/components/lab/EntryCard'
 import { labEntries, type LabEntryType } from '@/data/lab'
+import { markLabSeen } from '@/lib/labNotification'
 
 type Filter = 'all' | LabEntryType
 
 export default function Lab() {
   const [filter, setFilter] = useState<Filter>('all')
+
+  useEffect(() => {
+    markLabSeen()
+  }, [])
 
   const filtered = useMemo(() => {
     const sorted = [...labEntries].sort((a, b) => b.date.localeCompare(a.date))

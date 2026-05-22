@@ -1,11 +1,17 @@
+import { useEffect } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { ArrowLeft, FileText } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { getLabEntry } from '@/data/lab'
+import { markLabSeen } from '@/lib/labNotification'
 
 export default function LabDemo() {
   const { slug } = useParams<{ slug: string }>()
   const entry = slug ? getLabEntry(slug) : undefined
+
+  useEffect(() => {
+    markLabSeen()
+  }, [])
 
   if (!entry) {
     return <Navigate to="/lab" replace />
