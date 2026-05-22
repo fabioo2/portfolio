@@ -4,7 +4,7 @@ export const profile = {
   titles: [
     'Software Developer',
     'Terraformer',
-    'AI-Fluent Builder',
+    'AI-Native Builder',
     'Design-Conscious Engineer',
   ],
   tagline:
