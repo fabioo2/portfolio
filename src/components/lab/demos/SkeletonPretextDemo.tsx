@@ -80,8 +80,8 @@ export default function SkeletonPretextDemo() {
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            rows={3}
-            className="w-full text-sm leading-6 font-sans bg-background border border-border rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-ring resize-y"
+            rows={6}
+            className="w-full text-sm leading-6 font-sans bg-background border border-border rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-ring resize-y min-h-[8rem]"
             placeholder="Type or paste anything…"
           />
         </div>
