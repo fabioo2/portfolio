@@ -23,13 +23,18 @@ export default function SkeletonPretextDemo() {
   const [maxWidth, setMaxWidth] = useState(520)
   const colRef = useRef<HTMLDivElement>(null)
 
-  // Clamp the width slider to the rendered column's actual available width
-  // so the demo doesn't lie about itself on small screens.
+  // Clamp the width slider to the column's actual *content* width (clientWidth
+  // includes padding). Otherwise pretext computes against a wider canvas than
+  // the rendered text gets, undercounts wraps, and the container clips.
   useEffect(() => {
     function update() {
-      if (!colRef.current) return
-      const available = Math.floor(colRef.current.clientWidth - 8)
-      const mx = Math.max(200, Math.min(520, available))
+      const el = colRef.current
+      if (!el) return
+      const cs = window.getComputedStyle(el)
+      const pl = parseFloat(cs.paddingLeft) || 0
+      const pr = parseFloat(cs.paddingRight) || 0
+      const available = Math.floor(el.clientWidth - pl - pr)
+      const mx = Math.max(160, Math.min(520, available))
       setMaxWidth(mx)
       setWidth((w) => Math.min(w, mx))
     }
@@ -217,7 +222,6 @@ const Column = forwardRef<HTMLDivElement, ColumnProps>(function Column(
           <SkeletonLines count={skeletonLineCount} />
         ) : phase === 'loaded' ? (
           <div
-            className="p-0 text-sm font-sans"
             style={{
               fontFamily: 'Inter',
               fontSize: '16px',
