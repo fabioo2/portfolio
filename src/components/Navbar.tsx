@@ -38,17 +38,16 @@ export function Navbar() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-7 text-sm">
-          {isHome &&
-            homeAnchors.map((a) => (
-              <a
-                key={a.id}
-                href={`#${a.id}`}
-                onClick={handleAnchor(a.id)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {a.label}
-              </a>
-            ))}
+          {homeAnchors.map((a) => (
+            <a
+              key={a.id}
+              href={`#${a.id}`}
+              onClick={handleAnchor(a.id)}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {a.label}
+            </a>
+          ))}
           <Link
             to="/lab"
             className={cn(
