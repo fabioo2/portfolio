@@ -99,8 +99,8 @@ export const projects: ProjectCard[] = [
 
 export const skills = {
   Languages: ['JavaScript', 'TypeScript', 'Python', 'SQL', 'C#', 'HTML', 'CSS'],
-  Frameworks: ['Lit', 'Node.js', 'Koa.js', 'React', 'ASP.NET Core', 'MobX', 'Serverless'],
-  'Cloud / Infra': ['AWS', 'Terraform', 'Docker', 'Kubernetes', 'Ansible', 'CloudFront'],
+  Frameworks: ['Lit', 'Node.js', 'Koa.js', 'React', 'MobX', 'Serverless'],
+  'Cloud / Infra': ['AWS', 'Terraform', 'Docker', 'CloudFront'],
   Tools: ['Git', 'GitHub Actions', 'Stripe', 'Auth0', 'Playwright', 'Mocha'],
 }
 
