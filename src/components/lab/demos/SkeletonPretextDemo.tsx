@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, forwardRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, forwardRef } from 'react'
 import { prepare, layout } from '@chenglou/pretext'
 import { Button } from '@/components/ui/button'
 
@@ -15,18 +15,33 @@ const NAIVE_LINE_COUNT = 3 // what every "skeleton loader" component on the web 
 
 type Phase = 'idle' | 'loading' | 'loaded'
 
+// Pick a mobile-safe initial width before any measurement runs so the first
+// paint on mobile doesn't use the desktop default (which causes the column
+// height to be computed against a wider canvas than the rendered text gets).
+function pickInitialWidth(): number {
+  if (typeof window === 'undefined') return 320
+  // ~70% of viewport width, clamped. On a 375px iPhone this gives ~262px.
+  return Math.max(200, Math.min(420, Math.floor(window.innerWidth * 0.7)))
+}
+
 export default function SkeletonPretextDemo() {
   const [text, setText] = useState(SAMPLE_TEXT)
-  const [width, setWidth] = useState(420)
+  const [width, setWidth] = useState(pickInitialWidth)
   const [phase, setPhase] = useState<Phase>('idle')
   const [trigger, setTrigger] = useState(0)
-  const [maxWidth, setMaxWidth] = useState(520)
+  const [maxWidth, setMaxWidth] = useState(() =>
+    typeof window === 'undefined'
+      ? 520
+      : Math.max(200, Math.min(520, Math.floor(window.innerWidth * 0.85)))
+  )
   const colRef = useRef<HTMLDivElement>(null)
 
   // Clamp the width slider to the column's actual *content* width (clientWidth
   // includes padding). Otherwise pretext computes against a wider canvas than
   // the rendered text gets, undercounts wraps, and the container clips.
-  useEffect(() => {
+  // Using useLayoutEffect so the first measurement happens BEFORE paint —
+  // otherwise mobile loads briefly with the desktop default width.
+  useLayoutEffect(() => {
     function update() {
       const el = colRef.current
       if (!el) return
@@ -34,15 +49,20 @@ export default function SkeletonPretextDemo() {
       const pl = parseFloat(cs.paddingLeft) || 0
       const pr = parseFloat(cs.paddingRight) || 0
       const available = Math.floor(el.clientWidth - pl - pr)
+      if (available <= 0) return // not laid out yet
       const mx = Math.max(160, Math.min(520, available))
       setMaxWidth(mx)
       setWidth((w) => Math.min(w, mx))
     }
     update()
+    // Extra safety: re-measure after the next paint in case fonts/layout
+    // settled differently (common on first mobile load).
+    const raf = requestAnimationFrame(update)
     const obs = new ResizeObserver(update)
     if (colRef.current) obs.observe(colRef.current)
     window.addEventListener('resize', update)
     return () => {
+      cancelAnimationFrame(raf)
       obs.disconnect()
       window.removeEventListener('resize', update)
     }

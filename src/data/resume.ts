@@ -28,7 +28,7 @@ export type HobbyIcon = 'gamepad' | 'cpu' | 'fish' | 'coffee'
 
 export const personal = {
   intro:
-    "Off the clock, I'm in Windsor, Ontario with my wife and our two cats, Blanket and Buttons. A few things I get into when I'm not coding:",
+    "Off the clock, I'm in Windsor, Ontario with my wife and our two cats, Blanket and Buttons. A few things I get into when I'm not working:",
   hobbies: [
     {
       icon: 'gamepad' as HobbyIcon,
@@ -62,24 +62,41 @@ export type ProjectCard = {
   external?: boolean
 }
 
-export const projects: ProjectCard[] = [
+export const workProjects: ProjectCard[] = [
   {
-    name: 'SkillsWave',
+    name: 'Analytics Dashboard',
+    period: '2026 — Present',
+    description:
+      'Utilization, engagement, and investment dashboards for L&D admins. Designed the OpenSearch index mappings and aggregation queries that power them. Built generic chart and widget components on top of Apache ECharts, wrapped in Lit, so the team can compose new dashboards without re-implementing chart plumbing.',
+    tags: ['Lit', 'OpenSearch', 'ECharts', 'Analytics'],
+  },
+  {
+    name: 'Career Microservice',
+    period: '2025 — 2026',
+    description:
+      'An AI/LLM-driven career recommendation engine, deployed as a standalone microservice. Normalizes and maps tenant-specific skill labels against the Lightcast taxonomy, then layers LLM-generated career-path suggestions on top. Node.js on AWS Lambda + DynamoDB, exposed via REST API to the main Nova platform.',
+    tags: ['Microservice', 'AWS Lambda', 'Lightcast', 'LLM'],
+  },
+  {
+    name: 'SkillsWave Core (Nova)',
     period: '2024 — Present',
     description:
-      'A corporate learning platform built on a serverless AWS stack (Lambda, DynamoDB, OpenSearch). Implemented Stripe payment processing, multi-tenant SSO, and accessible, internationalized UI components in Lit Element.',
-    tags: ['AWS', 'Lit', 'Terraform', 'Stripe'],
+      'The platform foundation. Lit Element components with MobX state on the frontend; Koa.js APIs on a serverless AWS stack (Lambda, DynamoDB, OpenSearch) on the backend. Infra via Terraform modules and GitHub Actions CI/CD. Stripe billing, multi-tenant SSO, persona management, and accessible internationalized (EN/FR/ES) flows on top.',
+    tags: ['Lit', 'AWS', 'Terraform', 'CI/CD'],
   },
   {
-    name: 'D2L Wave',
-    period: '2021 — 2024',
+    name: 'D2L Wave Spinout',
+    period: '2024',
     description:
-      'Led platform migration for the D2L Wave spinout. Built reusable web components integrated across the Brightspace learning ecosystem and deployed full-stack serverless cloud applications.',
-    tags: ['Web Components', 'Node.js', 'Cloud Native'],
+      'The technical spinout of D2L Wave into SkillsWave. Migrated AWS resources between organizations and re-homed static marketing sites and applications onto new accounts. Handled domain transfers, DNS cutovers, and CDN/SSL provisioning so customers saw no downtime.',
+    tags: ['AWS', 'Route53', 'CloudFront', 'Migration'],
   },
+]
+
+export const personalProjects: ProjectCard[] = [
   {
-    name: 'IoT Notification Bridge',
-    period: 'smartthings-discord-bot',
+    name: 'smartthings-discord-bot',
+    period: 'Python · Docker',
     description:
       'A bridge between Samsung SmartThings and Discord for real-time IoT alerts. Monitors stove/oven states and sends smart notifications with configurable snooze controls.',
     tags: ['Python', 'Docker', 'IoT'],
@@ -87,8 +104,8 @@ export const projects: ProjectCard[] = [
     external: true,
   },
   {
-    name: 'AI-Powered Vision System',
-    period: 'tapo-catfood-monitor',
+    name: 'tapo-catfood-monitor',
+    period: 'Python · Gemini AI',
     description:
       'Computer vision system using a Tapo camera and Google Gemini AI to monitor cat food levels. Detects feeding events and provides automated tracking via Discord.',
     tags: ['Python', 'Gemini AI', 'Docker'],
