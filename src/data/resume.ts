@@ -67,18 +67,18 @@ export const workProjects: ProjectCard[] = [
     name: 'Analytics Dashboard',
     period: '2026 — Present',
     description:
-      'Utilization, engagement, and investment dashboards for L&D admins. Designed the OpenSearch indexing strategy — mappings, denormalization, runtime fields — and composite-bucket aggregation pipelines that power every panel. Added response caching with configurable TTLs to keep dashboards snappy. Built a library of composable chart and widget Lit web components on top of Apache ECharts, so new dashboards are assembled from existing pieces instead of re-implementing chart plumbing.',
+      'Utilization, engagement, and investment dashboards for L&D admins. Designed the OpenSearch index mappings and aggregation pipelines that power every panel. Added response caching with configurable TTLs to keep dashboards snappy. Built a library of composable chart and widget Lit web components on top of Apache ECharts, so new dashboards are assembled from existing pieces instead of re-implementing chart plumbing.',
     tags: ['Lit', 'OpenSearch', 'ECharts', 'Analytics'],
   },
   {
     name: 'Career Microservice',
     period: '2025 — 2026',
     description:
-      'The skills + occupations data service for SkillsWave. Integrates with Lightcast for the skill taxonomy and Canadian NOC codes, caches the versioned catalog in S3, and tracks per-user skill relationships (proficiency, evidence) in DynamoDB. This dataset feeds an LLM-driven recommendation engine in the broader career workflow, suggesting roles, learning paths, and adjacent skills tailored to each user. Node.js on AWS Lambda, exposed to Nova via REST.',
+      'The skills + occupations data service for SkillsWave. Integrates with Lightcast for the skill taxonomy and Canadian NOC codes, caches the versioned catalog in S3, and tracks per-user skill relationships (proficiency, evidence) in DynamoDB. This dataset feeds an LLM-driven recommendation engine in the broader career workflow, suggesting roles, learning paths, and adjacent skills tailored to each user. Node.js on AWS Lambda, exposed to the core monolith via REST.',
     tags: ['Lightcast', 'AWS Lambda', 'DynamoDB', 'LLM'],
   },
   {
-    name: 'SkillsWave Core (Nova)',
+    name: 'SkillsWave Core',
     period: '2024 — Present',
     description:
       'The platform foundation. Lit Element components with MobX state on the frontend; Koa.js APIs on a serverless AWS stack (Lambda, DynamoDB, OpenSearch) on the backend. Infra via Terraform modules and GitHub Actions CI/CD. Stripe billing, multi-tenant SSO, persona management, and accessible internationalized (EN/FR/ES) flows on top.',
