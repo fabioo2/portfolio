@@ -95,8 +95,8 @@ export const workProjects: ProjectCard[] = [
 
 export const personalProjects: ProjectCard[] = [
   {
-    name: 'smartthings-discord-bot',
-    period: 'Python · Docker',
+    name: 'IoT Notification Bridge',
+    period: 'smartthings-discord-bot',
     description:
       'A bridge between Samsung SmartThings and Discord for real-time IoT alerts. Monitors stove/oven states and sends smart notifications with configurable snooze controls.',
     tags: ['Python', 'Docker', 'IoT'],
@@ -104,8 +104,8 @@ export const personalProjects: ProjectCard[] = [
     external: true,
   },
   {
-    name: 'tapo-catfood-monitor',
-    period: 'Python · Gemini AI',
+    name: 'AI-Powered Vision System',
+    period: 'tapo-catfood-monitor',
     description:
       'Computer vision system using a Tapo camera and Google Gemini AI to monitor cat food levels. Detects feeding events and provides automated tracking via Discord.',
     tags: ['Python', 'Gemini AI', 'Docker'],
