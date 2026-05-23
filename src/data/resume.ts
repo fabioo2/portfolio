@@ -67,7 +67,7 @@ export const workProjects: ProjectCard[] = [
     name: 'Analytics Dashboard',
     period: '2026 — Present',
     description:
-      'Utilization, engagement, and investment dashboards for L&D admins. Designed the OpenSearch indexing strategy — mappings, denormalization, runtime fields — and composite-bucket aggregation pipelines that power every panel. Added response caching with configurable TTLs to keep dashboards snappy. Built a composable chart and widget framework on top of Apache ECharts, wrapped in Lit web components, so new dashboards ship as declarative configs.',
+      'Utilization, engagement, and investment dashboards for L&D admins. Designed the OpenSearch indexing strategy — mappings, denormalization, runtime fields — and composite-bucket aggregation pipelines that power every panel. Added response caching with configurable TTLs to keep dashboards snappy. Built a library of composable chart and widget Lit web components on top of Apache ECharts, so new dashboards are assembled from existing pieces instead of re-implementing chart plumbing.',
     tags: ['Lit', 'OpenSearch', 'ECharts', 'Analytics'],
   },
   {
