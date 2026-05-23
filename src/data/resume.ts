@@ -67,15 +67,15 @@ export const workProjects: ProjectCard[] = [
     name: 'Analytics Dashboard',
     period: '2026 — Present',
     description:
-      'Utilization, engagement, and investment dashboards for L&D admins. Designed the OpenSearch index mappings and aggregation queries that power them. Built generic chart and widget components on top of Apache ECharts, wrapped in Lit, so the team can compose new dashboards without re-implementing chart plumbing.',
+      'Utilization, engagement, and investment dashboards for L&D admins. Designed the OpenSearch indexing strategy — mappings, denormalization, runtime fields — and composite-bucket aggregation pipelines that power every panel. Added response caching with configurable TTLs to keep dashboards snappy. Built a composable chart and widget framework on top of Apache ECharts, wrapped in Lit web components, so new dashboards ship as declarative configs.',
     tags: ['Lit', 'OpenSearch', 'ECharts', 'Analytics'],
   },
   {
     name: 'Career Microservice',
     period: '2025 — 2026',
     description:
-      'An AI/LLM-driven career recommendation engine, deployed as a standalone microservice. Normalizes and maps tenant-specific skill labels against the Lightcast taxonomy, then layers LLM-generated career-path suggestions on top. Node.js on AWS Lambda + DynamoDB, exposed via REST API to the main Nova platform.',
-    tags: ['Microservice', 'AWS Lambda', 'Lightcast', 'LLM'],
+      'The skills + occupations data service for SkillsWave. Integrates with Lightcast for the skill taxonomy and Canadian NOC codes, caches the versioned catalog in S3, and tracks per-user skill relationships (proficiency, evidence) in DynamoDB. This dataset feeds an LLM-driven recommendation engine in the broader career workflow, suggesting roles, learning paths, and adjacent skills tailored to each user. Node.js on AWS Lambda, exposed to Nova via REST.',
+    tags: ['Lightcast', 'AWS Lambda', 'DynamoDB', 'LLM'],
   },
   {
     name: 'SkillsWave Core (Nova)',
