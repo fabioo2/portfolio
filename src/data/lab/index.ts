@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 import welcomeMd from './welcome.md?raw'
 import pretextSkeletonMd from './pretext-skeleton-poc.md?raw'
+import htmlInCanvasMd from './html-in-canvas-a11y.md?raw'
 import SkeletonPretextDemo from '@/components/lab/demos/SkeletonPretextDemo'
 
 export type LabEntryType = 'thought' | 'poc' | 'random'
@@ -17,6 +18,16 @@ export type LabEntry = {
 }
 
 export const labEntries: LabEntry[] = [
+  {
+    slug: 'html-in-canvas-a11y',
+    title: 'Canvas Charts Have an Accessibility Problem',
+    type: 'thought',
+    date: '2026-06-12',
+    excerpt:
+      'A new Chrome flag (canvas-draw-element) lets you draw HTML into canvas while keeping the accessibility tree intact. Promising path for genuinely accessible dataviz — thinking through the implications for my analytics work.',
+    tags: ['accessibility', 'canvas', 'charts', 'analytics', 'dataviz'],
+    body: htmlInCanvasMd,
+  },
   {
     slug: 'pretext-skeleton-poc',
     title: 'Skeleton Loaders That Don\'t Lie',

@@ -12,7 +12,41 @@ const CrtMonitor = lazy(() =>
 
 function MonitorFallback() {
   return (
-    <div className="w-full aspect-square max-w-[320px] mx-auto md:mx-0 rounded-2xl bg-muted/40 animate-pulse" />
+    <div
+      className="w-full aspect-square max-w-[260px] sm:max-w-[300px] md:max-w-[360px] mx-auto md:mx-0 flex items-center justify-center"
+      role="status"
+      aria-label="Booting CRT monitor"
+    >
+      <div
+        className="relative rounded-md px-5 py-4 leading-relaxed overflow-hidden"
+        style={{
+          background: '#070a07',
+          color: '#7bff9c',
+          border: '1px solid rgba(123, 255, 156, 0.35)',
+          fontFamily: '"Courier New", "Courier", monospace',
+          fontSize: '12px',
+          boxShadow:
+            '0 0 24px rgba(123, 255, 156, 0.18), inset 0 0 18px rgba(123, 255, 156, 0.06)',
+          textShadow: '0 0 6px rgba(123, 255, 156, 0.55)',
+          minWidth: '170px',
+        }}
+      >
+        <div>&gt; boot crt.fkos</div>
+        <div className="opacity-70 mt-1">tube warming&hellip;</div>
+        <div className="mt-2">
+          &gt;{' '}
+          <span
+            className="animate-cursor inline-block text-[hsl(var(--brand))]"
+            aria-hidden="true"
+            style={{ color: '#7bff9c' }}
+          >
+            _
+          </span>
+        </div>
+        <div className="absolute inset-0 scanlines pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-px bg-[#7bff9c]/40 animate-crt-scan pointer-events-none" />
+      </div>
+    </div>
   )
 }
 

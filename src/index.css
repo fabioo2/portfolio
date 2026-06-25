@@ -148,6 +148,18 @@
   );
 }
 
+/* CRT-style scan line sweeping vertically — used in the monitor boot loader */
+@keyframes crt-scan {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 0.9; }
+  90% { opacity: 0.9; }
+  100% { transform: translateY(120px); opacity: 0; }
+}
+.animate-crt-scan {
+  animation: crt-scan 1.6s linear infinite;
+  box-shadow: 0 0 8px rgba(123, 255, 156, 0.6);
+}
+
 /* Markdown body styles for Lab entries */
 .prose-lab {
   @apply text-foreground;
