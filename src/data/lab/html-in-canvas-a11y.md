@@ -35,11 +35,11 @@ That's a different category of UX from "the chart is over here and the parallel 
 
 ## Building a POC
 
-I built a small NFC-East-themed vertical bar chart in the Lab to feel the shape of the API. It was inspired by the [accessible-charts demo](https://html-in-canvas.dev/demos/accessible-charts/) on html-in-canvas.dev — same patterns lifted: real DOM elements as the labels, animated bars on mount, keyboard navigation with arrow keys, a live "screen reader preview" panel so sighted readers can feel what assistive tech announces, and hand-drawn focus rings (since `drawFocusIfNeeded()` still crashes in some Chromium builds).
+I built a small NFC-East-themed bar chart in the Lab to feel the shape of the API — Super Bowl wins per franchise, each bar a 3D cylinder in the team's colors. The [accessible-charts demo](https://html-in-canvas.dev/demos/accessible-charts/) on html-in-canvas.dev was a useful reference for the patterns.
 
-The canvas paints the bars, grid, axis labels, and focus rings. The number-and-logo labels above each bar are real `<button>` elements — focusable, with full `aria-label` strings, navigable via arrow keys. When the flag is on, those buttons' pixels are also composited into the canvas via `drawElement()` so the same DOM node is doing double duty as the accessibility surface AND a canvas-painted asset. When the flag is off, the labels are just CSS-positioned over the canvas and the chart still works — same a11y, no spec primitive.
+The canvas paints the cylinder bars to a 2D context. Each row is a real `<button>` — focusable, Tab-navigable, with a full `aria-label` a screen reader announces and a live region that echoes the focused bar. When the flag is on, focusing a bar composites the team logo into the canvas via `drawElement()`, so the same DOM node that's in the accessibility tree is also a canvas-painted asset; without the flag it falls back to `drawImage` and the chart still works the same.
 
-It's a "demonstrate one primitive cleanly" version rather than a full `layoutsubtree`-driven recreation. Putting the labels inside `<canvas>` via `layoutsubtree` is brittle across the Chromium builds I tested — children either flicker or refuse to render — so I went with the more reliable architecture and used `drawElement()` as the showcased primitive.
+It's a "demonstrate one primitive cleanly" version rather than a full `layoutsubtree`-driven recreation. Putting the buttons inside `<canvas>` via `layoutsubtree` turned out brittle across the Chromium builds I tested — children either flicker or refuse to render — so I went with the more reliable architecture and used `drawElement()` as the showcased primitive.
 
 Open questions I'm sitting with:
 
