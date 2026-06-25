@@ -4,18 +4,45 @@ type Bar = {
   label: string
   value: number
   color: string
+  shape: string // inner SVG markup drawn on top of a colored circle
 }
 
+// Generic geometric marks — not the teams' real logos. Star (Cowboys),
+// skyline (Giants), shield (Washington), chevron/wing (Eagles).
+const STAR =
+  '<polygon points="16,5 19,13 27,13 21,19 23,26 16,21 9,26 11,19 5,13 13,13" fill="white"/>'
+const SKYLINE =
+  '<rect x="9" y="14" width="4" height="13" fill="white"/>' +
+  '<rect x="14" y="9" width="4" height="18" fill="white"/>' +
+  '<rect x="19" y="12" width="4" height="15" fill="white"/>'
+const SHIELD =
+  '<path d="M16 7 L23 9 L23 17 Q23 22 16 26 Q9 22 9 17 L9 9 Z" fill="white"/>'
+const CHEVRON = '<path d="M7 11 L16 22 L25 11 Z" fill="white"/>'
+
 // Super Bowl wins by NFC East franchise, sorted by total. Each bar uses the
-// team's primary jersey color.
+// team's primary jersey color and a custom geometric mark with proper alt text.
 const DATA: Bar[] = [
-  { label: 'Dallas Cowboys', value: 5, color: '#003594' },
-  { label: 'New York Giants', value: 4, color: '#0B2265' },
-  { label: 'Washington Commanders', value: 3, color: '#5A1414' },
-  { label: 'Philadelphia Eagles', value: 2, color: '#004C54' },
+  { label: 'Dallas Cowboys', value: 5, color: '#003594', shape: STAR },
+  { label: 'New York Giants', value: 4, color: '#0B2265', shape: SKYLINE },
+  { label: 'Washington Commanders', value: 3, color: '#5A1414', shape: SHIELD },
+  { label: 'Philadelphia Eagles', value: 2, color: '#004C54', shape: CHEVRON },
 ]
 
 const MAX = Math.max(...DATA.map((d) => d.value))
+
+// Build the team's mark as a data: URL so it ships zero external assets.
+// Using a real <img alt="…"> means screen readers announce it via standard
+// HTML semantics — demonstrating that putting elements inside <canvas> via
+// layoutsubtree preserves your existing accessibility patterns (no special
+// canvas a11y plumbing needed).
+function teamLogoDataUrl(shape: string, color: string): string {
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">` +
+    `<circle cx="16" cy="16" r="15" fill="${color}"/>` +
+    shape +
+    `</svg>`
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+}
 
 // Feature detection: the canvas-draw-element flag exposes new context methods.
 // The spec uses both names across Chromium prototypes — check both.
@@ -205,8 +232,15 @@ function BarButton({
       aria-setsize={DATA.length}
       className="group w-full text-left flex items-center gap-3 sm:gap-4 px-2 sm:px-3 py-2 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card hover:bg-muted/40 transition-colors"
     >
-      <span className="flex-shrink-0 w-44 sm:w-64 text-sm leading-snug">
-        {data.label}
+      <span className="flex-shrink-0 w-44 sm:w-64 text-sm leading-snug flex items-center gap-2">
+        <img
+          src={teamLogoDataUrl(data.shape, data.color)}
+          alt={`${data.label} logo`}
+          width="24"
+          height="24"
+          className="flex-shrink-0"
+        />
+        <span>{data.label}</span>
       </span>
       <span
         className="relative flex-1 h-7 rounded-sm overflow-hidden bg-muted/60"
@@ -278,7 +312,10 @@ function Caption({ supported }: { supported: boolean | null }) {
   return (
     <p className="mt-5 text-xs text-muted-foreground leading-relaxed">
       Tab/Shift+Tab to move between bars. The live region above announces the focused
-      bar's label and value to assistive tech.{' '}
+      bar's label and value to assistive tech. The team logos use standard{' '}
+      <code className="font-mono">&lt;img alt&quot;…&quot;&gt;</code> markup — native
+      HTML accessibility patterns work as-is alongside the canvas spec, no special
+      canvas a11y plumbing required.{' '}
       {supported === true && (
         <>
           The wrapper element of the bar list is a literal{' '}
@@ -287,9 +324,10 @@ function Caption({ supported }: { supported: boolean | null }) {
       )}
       {supported === false && (
         <>
-          Same component renders inside a <code className="font-mono">&lt;canvas&gt;</code>{' '}
-          with <code className="font-mono">layoutsubtree</code> when the flag is on. Try it
-          and the wrapper element will swap to a canvas without any other layout changes.
+          With the flag on, the same component renders inside a{' '}
+          <code className="font-mono">&lt;canvas&gt;</code> with{' '}
+          <code className="font-mono">layoutsubtree</code>. The wrapper element swaps to a
+          canvas with no other layout changes.
         </>
       )}
     </p>

@@ -17,44 +17,18 @@ function MonitorFallback() {
       role="status"
       aria-label="Loading"
     >
-      <svg
-        viewBox="0 0 64 64"
-        width="56"
-        height="56"
-        className="animate-floppy-spin text-muted-foreground"
-        aria-hidden="true"
+      <span
+        className="font-mono text-base"
+        style={{
+          color: '#00ff41',
+          textShadow: '0 0 10px rgba(0, 255, 65, 0.55)',
+        }}
       >
-        {/* Body */}
-        <rect
-          x="6"
-          y="6"
-          width="52"
-          height="52"
-          rx="3"
-          fill="#b8b7b0"
-          stroke="#7a7975"
-          strokeWidth="0.6"
-        />
-        {/* Metal slider */}
-        <rect x="18" y="9" width="28" height="14" fill="#d4d3ce" />
-        <rect x="33" y="13" width="2" height="6" fill="#7a7975" />
-        {/* Label area */}
-        <rect
-          x="13"
-          y="30"
-          width="38"
-          height="22"
-          fill="#f0eee6"
-          stroke="#7a7975"
-          strokeWidth="0.5"
-        />
-        {/* Label lines */}
-        <line x1="17" y1="37" x2="47" y2="37" stroke="#b8b7b0" strokeWidth="0.8" />
-        <line x1="17" y1="41" x2="47" y2="41" stroke="#b8b7b0" strokeWidth="0.8" />
-        <line x1="17" y1="45" x2="40" y2="45" stroke="#b8b7b0" strokeWidth="0.8" />
-        {/* Notch on the corner */}
-        <rect x="6" y="6" width="3" height="3" fill="#9a9994" />
-      </svg>
+        loading
+        <span className="animate-loading-dot animate-loading-dot-1" aria-hidden="true">.</span>
+        <span className="animate-loading-dot animate-loading-dot-2" aria-hidden="true">.</span>
+        <span className="animate-loading-dot animate-loading-dot-3" aria-hidden="true">.</span>
+      </span>
     </div>
   )
 }
