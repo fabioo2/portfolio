@@ -3,6 +3,7 @@ import welcomeMd from './welcome.md?raw'
 import pretextSkeletonMd from './pretext-skeleton-poc.md?raw'
 import htmlInCanvasMd from './html-in-canvas-a11y.md?raw'
 import SkeletonPretextDemo from '@/components/lab/demos/SkeletonPretextDemo'
+import HtmlInCanvasBarChart from '@/components/lab/demos/HtmlInCanvasBarChart'
 
 export type LabEntryType = 'thought' | 'poc' | 'random'
 
@@ -21,12 +22,13 @@ export const labEntries: LabEntry[] = [
   {
     slug: 'html-in-canvas-a11y',
     title: 'Canvas Charts Have an Accessibility Problem',
-    type: 'thought',
+    type: 'poc',
     date: '2026-06-12',
     excerpt:
       'A new Chrome flag (canvas-draw-element) lets you draw HTML into canvas while keeping the accessibility tree intact. Promising path for genuinely accessible dataviz — thinking through the implications for my analytics work.',
     tags: ['accessibility', 'canvas', 'charts', 'analytics', 'dataviz'],
     body: htmlInCanvasMd,
+    demo: HtmlInCanvasBarChart,
   },
   {
     slug: 'pretext-skeleton-poc',
