@@ -224,19 +224,10 @@ export default function HtmlInCanvasBarChart() {
 
 function AccessibleChart() {
   const [focusedIdx, setFocusedIdx] = useState<number | null>(null)
-  const liveRegionRef = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const trackRefs = useRef<Array<HTMLElement | null>>([])
   const buttonRefs = useRef<Array<HTMLButtonElement | null>>([])
-
-  useEffect(() => {
-    if (focusedIdx === null || !liveRegionRef.current) return
-    const d = DATA[focusedIdx]
-    liveRegionRef.current.textContent = `${d.label}: ${d.value} Super Bowl ${
-      d.value === 1 ? 'win' : 'wins'
-    }`
-  }, [focusedIdx])
 
   const paint = useCallback(() => {
     const canvas = canvasRef.current
@@ -359,7 +350,7 @@ function AccessibleChart() {
         </ul>
       </div>
 
-      <div ref={liveRegionRef} aria-live="polite" aria-atomic="true" className="sr-only" />
+      <SrPreview focusedIdx={focusedIdx} />
 
       <div className="mt-4 p-3 rounded-md bg-emerald-500/5 border border-emerald-500/20 text-xs leading-relaxed">
         <strong className="text-emerald-700 dark:text-emerald-400">
@@ -429,6 +420,44 @@ function BarButton({
         {data.value}
       </span>
     </button>
+  )
+}
+
+// Visible "screen reader preview" — mirrors what assistive tech announces
+// for the focused bar. It IS the live region, so it's both shown to sighted
+// readers and announced to AT.
+function SrPreview({ focusedIdx }: { focusedIdx: number | null }) {
+  const text =
+    focusedIdx === null
+      ? null
+      : `${DATA[focusedIdx].label}: ${DATA[focusedIdx].value} Super Bowl ${
+          DATA[focusedIdx].value === 1 ? 'win' : 'wins'
+        }`
+
+  return (
+    <div
+      className="mt-4 p-3 rounded-md bg-muted/40 border border-border/60"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <div className="flex items-center gap-2 mb-1">
+        <span
+          className="inline-block w-2 h-2 rounded-full bg-emerald-500"
+          aria-hidden="true"
+        />
+        <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+          Screen reader announces
+        </span>
+      </div>
+      <p className="text-sm font-mono text-foreground/90 min-h-[1.4em]">
+        {text ?? (
+          <span className="text-muted-foreground italic">
+            Tab into a bar to hear what a screen reader reads.
+          </span>
+        )}
+      </p>
+    </div>
   )
 }
 
