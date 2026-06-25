@@ -101,6 +101,27 @@ function ChartShell({
   onFocus: (i: number) => void
   onBlur: () => void
 }) {
+  // Even if the flag is detected, the layoutsubtree implementation may not
+  // actually render the buttons (drawElement and layoutsubtree can ship
+  // independently in Chromium intents). Render inside <canvas> first, then
+  // check after mount whether the buttons actually laid out — if not, swap
+  // to the <ul> fallback so the chart isn't empty.
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [renderedOk, setRenderedOk] = useState(true)
+
+  useEffect(() => {
+    if (!supported || !containerRef.current) return
+    // Wait one frame for layout to settle
+    const id = requestAnimationFrame(() => {
+      const firstBtn = containerRef.current?.querySelector('button')
+      const visible = !!firstBtn && firstBtn.offsetHeight > 0
+      setRenderedOk(visible)
+    })
+    return () => cancelAnimationFrame(id)
+  }, [supported])
+
+  const useCanvasPath = supported && renderedOk
+
   const bars = DATA.map((d, i) => (
     <BarButton
       key={d.label}
@@ -108,39 +129,36 @@ function ChartShell({
       index={i}
       onFocus={() => onFocus(i)}
       onBlur={onBlur}
-      inCanvas={supported}
+      inCanvas={useCanvasPath}
     />
   ))
 
-  if (supported) {
-    // Real canvas-draw-element usage: <button> children of <canvas>, each
-    // with the layoutsubtree attribute. The browser lays them out, hit-tests
-    // them, and includes them in the accessibility tree — even though they
-    // live inside a canvas element.
-    return (
-      <canvas
-        role="list"
-        aria-label="Super Bowl wins by NFC East franchise"
-        className="block w-full"
-        style={{ width: '100%', height: 'auto' }}
-      >
-        {bars}
-      </canvas>
-    )
-  }
-
-  // Fallback: identical buttons in a plain list. No canvas because layoutsubtree
-  // would just turn the children into invisible canvas fallback content.
   return (
-    <ul
-      role="list"
-      aria-label="Super Bowl wins by NFC East franchise"
-      className="list-none space-y-2"
-    >
-      {bars.map((b, i) => (
-        <li key={DATA[i].label}>{b}</li>
-      ))}
-    </ul>
+    <div ref={containerRef}>
+      {useCanvasPath ? (
+        // Real canvas-draw-element usage: <button> children of <canvas>, each
+        // with the layoutsubtree attribute. Browser handles layout, hit
+        // testing, and accessibility tree.
+        <canvas
+          role="list"
+          aria-label="Super Bowl wins by NFC East franchise"
+          className="block w-full"
+          style={{ width: '100%', height: 'auto' }}
+        >
+          {bars}
+        </canvas>
+      ) : (
+        <ul
+          role="list"
+          aria-label="Super Bowl wins by NFC East franchise"
+          className="list-none space-y-2"
+        >
+          {bars.map((b, i) => (
+            <li key={DATA[i].label}>{b}</li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }
 
@@ -161,21 +179,22 @@ function BarButton({
   onBlur: () => void
   inCanvas: boolean
 }) {
-  const ref = useRef<HTMLButtonElement>(null)
   const widthPct = (data.value / MAX) * 100
 
   // When the flag is on and we render inside <canvas>, mark each button with
-  // the layoutsubtree attribute (set imperatively — TS/JSX don't know the
-  // attribute name yet, and a JSX `layoutsubtree` prop would warn at runtime).
-  useEffect(() => {
-    if (!inCanvas || !ref.current) return
-    ref.current.setAttribute('layoutsubtree', '')
-    return () => ref.current?.removeAttribute('layoutsubtree')
-  }, [inCanvas])
+  // the layoutsubtree attribute SYNCHRONOUSLY via a ref callback so it's set
+  // before the browser lays out the canvas — otherwise the browser treats
+  // these as canvas fallback content (invisible) and a later setAttribute
+  // doesn't promote them back out.
+  const setRef = (el: HTMLButtonElement | null) => {
+    if (!el) return
+    if (inCanvas) el.setAttribute('layoutsubtree', '')
+    else el.removeAttribute('layoutsubtree')
+  }
 
   return (
     <button
-      ref={ref}
+      ref={setRef}
       type="button"
       onFocus={onFocus}
       onBlur={onBlur}
