@@ -17,13 +17,7 @@ function MonitorFallback() {
       role="status"
       aria-label="Loading"
     >
-      <span
-        className="font-mono text-base"
-        style={{
-          color: '#00ff41',
-          textShadow: '0 0 10px rgba(0, 255, 65, 0.55)',
-        }}
-      >
+      <span className="font-mono text-base matrix-text">
         loading
         <span className="animate-loading-dot animate-loading-dot-1" aria-hidden="true">.</span>
         <span className="animate-loading-dot animate-loading-dot-2" aria-hidden="true">.</span>

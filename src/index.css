@@ -161,6 +161,17 @@
 .animate-loading-dot-2 { animation-delay: 0.18s; }
 .animate-loading-dot-3 { animation-delay: 0.36s; }
 
+/* Matrix-green loading text — darker shade in light mode for contrast,
+   full phosphor green with glow in dark mode. */
+.matrix-text {
+  color: #137c3a;
+  text-shadow: 0 0 6px rgba(20, 130, 60, 0.18);
+}
+.dark .matrix-text {
+  color: #00ff41;
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.55);
+}
+
 /* Markdown body styles for Lab entries */
 .prose-lab {
   @apply text-foreground;
