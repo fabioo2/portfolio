@@ -10,36 +10,37 @@ type Bar = {
   label: string
   value: number
   color: string
-  shape: string // inner SVG markup drawn on top of a colored circle
+  logo: string
 }
 
-const STAR =
-  '<polygon points="16,5 19,13 27,13 21,19 23,26 16,21 9,26 11,19 5,13 13,13" fill="white"/>'
-const SKYLINE =
-  '<rect x="9" y="14" width="4" height="13" fill="white"/>' +
-  '<rect x="14" y="9" width="4" height="18" fill="white"/>' +
-  '<rect x="19" y="12" width="4" height="15" fill="white"/>'
-const SHIELD =
-  '<path d="M16 7 L23 9 L23 17 Q23 22 16 26 Q9 22 9 17 L9 9 Z" fill="white"/>'
-const CHEVRON = '<path d="M7 11 L16 22 L25 11 Z" fill="white"/>'
-
 const DATA: Bar[] = [
-  { label: 'Dallas Cowboys', value: 5, color: '#003594', shape: STAR },
-  { label: 'New York Giants', value: 4, color: '#0B2265', shape: SKYLINE },
-  { label: 'Washington Commanders', value: 3, color: '#5A1414', shape: SHIELD },
-  { label: 'Philadelphia Eagles', value: 2, color: '#004C54', shape: CHEVRON },
+  {
+    label: 'Dallas Cowboys',
+    value: 5,
+    color: '#003594',
+    logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/dal.png',
+  },
+  {
+    label: 'New York Giants',
+    value: 4,
+    color: '#0B2265',
+    logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/nyg.png',
+  },
+  {
+    label: 'Washington Commanders',
+    value: 3,
+    color: '#5A1414',
+    logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/wsh.png',
+  },
+  {
+    label: 'Philadelphia Eagles',
+    value: 2,
+    color: '#004C54',
+    logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/phi.png',
+  },
 ]
 
 const MAX = Math.max(...DATA.map((d) => d.value))
-
-function teamLogoDataUrl(shape: string, color: string): string {
-  const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">` +
-    `<circle cx="16" cy="16" r="15" fill="${color}"/>` +
-    shape +
-    `</svg>`
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
-}
 
 function detectFeature(): boolean {
   if (typeof document === 'undefined') return false
@@ -193,11 +194,13 @@ export default function HtmlInCanvasBarChart() {
       drawCylinder(ctx, x, y, fillW, r.height, d.color, focusedIdx === i)
     })
 
-    // drawElement() spec showcase — paint the focused team's <img> at 2.5×
-    // scale with a colored shadow. The same DOM element is also rendered as
-    // HTML (focusable, screen-reader-readable); the canvas just gets a
-    // visual flourish that lives only in the painted layer. Falls back to
-    // ctx.drawImage so the effect works without the flag too.
+    // drawElement() spec showcase — paint the focused team's <img> ON the
+    // cylinder body (near the right end). Positioning over the cylinder
+    // means the flourish can never clip past the chart's right edge,
+    // regardless of how short or long the bar is. Same DOM element is
+    // also rendered as HTML (focusable, screen-reader-readable); the
+    // canvas just gets a visual flourish. Falls back to ctx.drawImage so
+    // the effect works without the flag too.
     if (focusedIdx !== null) {
       const track = trackRefs.current[focusedIdx]
       const btn = buttonRefs.current[focusedIdx]
@@ -205,15 +208,22 @@ export default function HtmlInCanvasBarChart() {
       if (track && logo) {
         const r = track.getBoundingClientRect()
         const fillW = (DATA[focusedIdx].value / MAX) * r.width
-        const cx = r.left - wrapperRect.left + fillW + 22
+        const SIZE = 36 // painted-logo diameter
+        // Center the flourish inside the cylinder, 22px from its right end.
+        // For very short bars, fall back to the cylinder's midpoint.
+        const targetFromRight = 22
+        const minCx = SIZE / 2 + 4
+        const cxLocal = Math.max(minCx, fillW - targetFromRight)
+        const cx = r.left - wrapperRect.left + cxLocal
         const cy = r.top - wrapperRect.top + r.height / 2
 
         ctx.save()
         ctx.shadowColor = DATA[focusedIdx].color
-        ctx.shadowBlur = 18
-        ctx.globalAlpha = 0.75
+        ctx.shadowBlur = 14
+        ctx.globalAlpha = 0.85
         ctx.translate(cx, cy)
-        ctx.scale(2.5, 2.5)
+        const scale = SIZE / 24
+        ctx.scale(scale, scale)
         ctx.translate(-12, -12)
 
         const ctxAny = ctx as CanvasRenderingContext2D & {
@@ -351,10 +361,11 @@ function BarButton({
     >
       <span className="flex-shrink-0 w-44 sm:w-64 text-sm leading-snug flex items-center gap-2">
         <img
-          src={teamLogoDataUrl(data.shape, data.color)}
+          src={data.logo}
           alt={`${data.label} logo`}
           width="24"
           height="24"
+          crossOrigin="anonymous"
           className="flex-shrink-0"
         />
         <span>{data.label}</span>
