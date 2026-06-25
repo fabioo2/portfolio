@@ -4,59 +4,64 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
 
-type Bar = {
-  label: string
+// Inspired by html-in-canvas.dev/demos/accessible-charts/ —
+// vertical bar chart with real DOM labels as canvas children, keyboard
+// navigation across bars, a live screen-reader preview panel, and animated
+// bar growth on mount. NFC East Super Bowl wins as the dataset.
+
+type Datum = {
+  team: string
+  abbr: string
   value: number
   color: string
   logo: string
 }
 
-const DATA: Bar[] = [
+const DATA: Datum[] = [
   {
-    label: 'Dallas Cowboys',
+    team: 'Dallas Cowboys',
+    abbr: 'DAL',
     value: 5,
     color: '#003594',
     logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/dal.png',
   },
   {
-    label: 'New York Giants',
+    team: 'New York Giants',
+    abbr: 'NYG',
     value: 4,
     color: '#0B2265',
     logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/nyg.png',
   },
   {
-    label: 'Washington Commanders',
+    team: 'Washington Commanders',
+    abbr: 'WSH',
     value: 3,
     color: '#5A1414',
     logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/wsh.png',
   },
   {
-    label: 'Philadelphia Eagles',
+    team: 'Philadelphia Eagles',
+    abbr: 'PHI',
     value: 2,
     color: '#004C54',
     logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/phi.png',
   },
 ]
 
-const MAX = Math.max(...DATA.map((d) => d.value))
+const Y_MAX = 5
 
-function detectFeature(): boolean {
-  if (typeof document === 'undefined') return false
-  const canvas = document.createElement('canvas')
-  const ctx = canvas.getContext('2d') as
-    | (CanvasRenderingContext2D & {
-        drawElement?: unknown
-        drawElementImage?: unknown
-      })
-    | null
-  if (!ctx) return false
-  return typeof ctx.drawElement === 'function' || typeof ctx.drawElementImage === 'function'
-}
+// Layout constants (CSS px in chart coordinate space)
+const PAD_L = 44
+const PAD_R = 20
+const PAD_T = 12
+const PAD_B = 36
+const LABEL_BAND = 44 // reserved at top of plot area for HTML labels
 
 // =============================================================================
-// CYLINDER PAINTING
+// HELPERS
 // =============================================================================
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -68,202 +73,245 @@ function hexToRgb(hex: string): [number, number, number] {
   ]
 }
 
-function shift(rgb: [number, number, number], amt: number): [number, number, number] {
-  return [
-    Math.max(0, Math.min(255, rgb[0] + amt)),
-    Math.max(0, Math.min(255, rgb[1] + amt)),
-    Math.max(0, Math.min(255, rgb[2] + amt)),
-  ]
+function shift([r, g, b]: [number, number, number], amt: number): string {
+  const c = (n: number) => Math.max(0, Math.min(255, n + amt))
+  return `rgb(${c(r)}, ${c(g)}, ${c(b)})`
 }
 
-function rgbStr([r, g, b]: [number, number, number]): string {
-  return `rgb(${r}, ${g}, ${b})`
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3)
 }
 
-function drawCylinder(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  color: string,
-  focused: boolean,
-) {
-  if (w <= 0) return
-
-  const base = hexToRgb(color)
-  const boost = focused ? 18 : 0
-  const top = shift(base, 90 + boost)
-  const upper = shift(base, 40 + boost)
-  const mid = shift(base, boost)
-  const lower = shift(base, -45)
-  const bottom = shift(base, -80)
-
-  const bodyGrad = ctx.createLinearGradient(x, y, x, y + h)
-  bodyGrad.addColorStop(0, rgbStr(top))
-  bodyGrad.addColorStop(0.18, rgbStr(upper))
-  bodyGrad.addColorStop(0.5, rgbStr(mid))
-  bodyGrad.addColorStop(0.82, rgbStr(lower))
-  bodyGrad.addColorStop(1, rgbStr(bottom))
-
-  const radius = Math.min(h / 2, 4)
-  ctx.beginPath()
-  ctx.moveTo(x + radius, y)
-  ctx.lineTo(x + w, y)
-  ctx.lineTo(x + w, y + h)
-  ctx.lineTo(x + radius, y + h)
-  ctx.quadraticCurveTo(x, y + h, x, y + h - radius)
-  ctx.lineTo(x, y + radius)
-  ctx.quadraticCurveTo(x, y, x + radius, y)
-  ctx.closePath()
-  ctx.fillStyle = bodyGrad
-  ctx.fill()
-
-  // Right end cap — half ellipse so the bar reads as a cylinder, not a rect.
-  const capDepth = Math.max(3, h * 0.18)
-  const capGrad = ctx.createLinearGradient(x + w, y, x + w, y + h)
-  capGrad.addColorStop(0, rgbStr(shift(base, 60)))
-  capGrad.addColorStop(0.5, rgbStr(shift(base, 10)))
-  capGrad.addColorStop(1, rgbStr(shift(base, -55)))
-
-  ctx.beginPath()
-  ctx.ellipse(x + w, y + h / 2, capDepth, h / 2, 0, -Math.PI / 2, Math.PI / 2)
-  ctx.fillStyle = capGrad
-  ctx.fill()
-
-  // Glossy highlight strip across the top
-  const sheenGrad = ctx.createLinearGradient(x, y, x, y + h * 0.4)
-  sheenGrad.addColorStop(0, 'rgba(255, 255, 255, 0.22)')
-  sheenGrad.addColorStop(1, 'rgba(255, 255, 255, 0)')
-  ctx.fillStyle = sheenGrad
-  ctx.fillRect(x + radius, y, w - radius, h * 0.4)
+function detectFeature(): boolean {
+  if (typeof document === 'undefined') return false
+  const c = document.createElement('canvas')
+  const ctx = c.getContext('2d') as
+    | (CanvasRenderingContext2D & {
+        drawElement?: unknown
+        drawElementImage?: unknown
+      })
+    | null
+  if (!ctx) return false
+  return (
+    typeof ctx.drawElement === 'function' ||
+    typeof ctx.drawElementImage === 'function'
+  )
 }
 
 // =============================================================================
-// COMPONENT
+// MAIN COMPONENT
 // =============================================================================
 
 export default function HtmlInCanvasBarChart() {
   const [supported, setSupported] = useState<boolean | null>(null)
   const [focusedIdx, setFocusedIdx] = useState<number | null>(null)
-  const liveRegionRef = useRef<HTMLDivElement>(null)
+  const [progress, setProgress] = useState(0)
+  const [dims, setDims] = useState({ w: 720, h: 360 })
 
-  // Refs for layout + canvas painting
   const wrapperRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const trackRefs = useRef<Array<HTMLElement | null>>([])
-  const buttonRefs = useRef<Array<HTMLButtonElement | null>>([])
+  const labelRefs = useRef<Array<HTMLButtonElement | null>>([])
 
   useEffect(() => {
     setSupported(detectFeature())
   }, [])
 
+  // Animate bars on mount — sweep from baseline upward over ~900ms.
   useEffect(() => {
-    if (focusedIdx === null || !liveRegionRef.current) return
-    const d = DATA[focusedIdx]
-    liveRegionRef.current.textContent = `${d.label}: ${d.value} Super Bowl ${
-      d.value === 1 ? 'win' : 'wins'
-    }`
-  }, [focusedIdx])
+    let raf = 0
+    const start = performance.now()
+    const tick = () => {
+      const t = Math.min(1, (performance.now() - start) / 900)
+      setProgress(easeOutCubic(t))
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [])
 
+  // Resize observer — keep canvas bitmap matched to displayed CSS size so
+  // `layoutsubtree` children lay out at 1:1 pixel ratio.
+  useEffect(() => {
+    if (!wrapperRef.current) return
+    const obs = new ResizeObserver(([entry]) => {
+      const w = Math.floor(entry.contentRect.width)
+      const h = Math.max(300, Math.round(w * 0.5))
+      setDims({ w, h })
+    })
+    obs.observe(wrapperRef.current)
+    return () => obs.disconnect()
+  }, [])
+
+  // Derived bar geometry — pure functions of dims + progress.
+  const plotW = dims.w - PAD_L - PAD_R
+  const plotH = dims.h - PAD_T - PAD_B - LABEL_BAND
+  const baseline = PAD_T + LABEL_BAND + plotH
+  const innerSlot = plotW / DATA.length
+  const barW = Math.min(72, Math.floor(innerSlot * 0.55))
+
+  const barX = (i: number) => PAD_L + innerSlot * i + (innerSlot - barW) / 2
+  const barTopFor = (i: number) =>
+    baseline - (DATA[i].value / Y_MAX) * plotH * progress
+
+  // ============================================================
+  // PAINT
+  // ============================================================
   const paint = useCallback(() => {
     const canvas = canvasRef.current
-    const wrapper = wrapperRef.current
-    if (!canvas || !wrapper) return
+    if (!canvas) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    const wrapperRect = wrapper.getBoundingClientRect()
-    if (wrapperRect.width === 0 || wrapperRect.height === 0) return
-
     const dpr = window.devicePixelRatio || 1
-    canvas.width = Math.round(wrapperRect.width * dpr)
-    canvas.height = Math.round(wrapperRect.height * dpr)
-    canvas.style.width = `${wrapperRect.width}px`
-    canvas.style.height = `${wrapperRect.height}px`
+    canvas.width = Math.round(dims.w * dpr)
+    canvas.height = Math.round(dims.h * dpr)
+    canvas.style.width = `${dims.w}px`
+    canvas.style.height = `${dims.h}px`
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    ctx.clearRect(0, 0, wrapperRect.width, wrapperRect.height)
+    ctx.clearRect(0, 0, dims.w, dims.h)
 
+    // ----- Grid + Y-axis ticks -----
+    ctx.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace'
+    ctx.textBaseline = 'middle'
+    for (let v = 0; v <= Y_MAX; v++) {
+      const y = baseline - (v / Y_MAX) * plotH
+      ctx.strokeStyle = 'rgba(127, 127, 127, 0.15)'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(PAD_L, y)
+      ctx.lineTo(dims.w - PAD_R, y)
+      ctx.stroke()
+      ctx.fillStyle = 'rgba(127, 127, 127, 0.7)'
+      ctx.textAlign = 'right'
+      ctx.fillText(String(v), PAD_L - 8, y)
+    }
+
+    // ----- X-axis baseline -----
+    ctx.strokeStyle = 'rgba(127, 127, 127, 0.35)'
+    ctx.beginPath()
+    ctx.moveTo(PAD_L, baseline)
+    ctx.lineTo(dims.w - PAD_R, baseline)
+    ctx.stroke()
+
+    // ----- Bars (gradient fills) -----
     DATA.forEach((d, i) => {
-      const track = trackRefs.current[i]
-      if (!track) return
-      const r = track.getBoundingClientRect()
-      const x = r.left - wrapperRect.left
-      const y = r.top - wrapperRect.top
-      const fillW = (d.value / MAX) * r.width
-      drawCylinder(ctx, x, y, fillW, r.height, d.color, focusedIdx === i)
+      const x = barX(i)
+      const yTop = barTopFor(i)
+      const h = baseline - yTop
+      if (h < 0.5) return
+
+      const base = hexToRgb(d.color)
+      const grad = ctx.createLinearGradient(x, yTop, x, baseline)
+      grad.addColorStop(0, shift(base, 75))
+      grad.addColorStop(0.55, shift(base, 10))
+      grad.addColorStop(1, shift(base, -55))
+      ctx.fillStyle = grad
+
+      const r = 4
+      ctx.beginPath()
+      ctx.moveTo(x, baseline)
+      ctx.lineTo(x, yTop + r)
+      ctx.quadraticCurveTo(x, yTop, x + r, yTop)
+      ctx.lineTo(x + barW - r, yTop)
+      ctx.quadraticCurveTo(x + barW, yTop, x + barW, yTop + r)
+      ctx.lineTo(x + barW, baseline)
+      ctx.closePath()
+      ctx.fill()
+
+      // Thin highlight strip down the left edge — adds dimension
+      const sheen = ctx.createLinearGradient(x, yTop, x + barW * 0.4, yTop)
+      sheen.addColorStop(0, 'rgba(255, 255, 255, 0.22)')
+      sheen.addColorStop(1, 'rgba(255, 255, 255, 0)')
+      ctx.fillStyle = sheen
+      ctx.fillRect(x + r, yTop, barW * 0.4, h)
+
+      // X-axis abbreviation under each bar
+      ctx.fillStyle = 'rgba(127, 127, 127, 0.85)'
+      ctx.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'top'
+      ctx.fillText(d.abbr, x + barW / 2, baseline + 10)
     })
 
-    // drawElement() spec showcase — paint the focused team's <img> ON the
-    // cylinder body (near the right end). Positioning over the cylinder
-    // means the flourish can never clip past the chart's right edge,
-    // regardless of how short or long the bar is. Same DOM element is
-    // also rendered as HTML (focusable, screen-reader-readable); the
-    // canvas just gets a visual flourish. Falls back to ctx.drawImage so
-    // the effect works without the flag too.
+    // ----- Hand-drawn focus ring -----
+    // (drawFocusIfNeeded crashes in some Chromium builds, so we trace
+    //  the focus rect manually — white outer stroke, brand-color inner.)
     if (focusedIdx !== null) {
-      const track = trackRefs.current[focusedIdx]
-      const btn = buttonRefs.current[focusedIdx]
-      const logo = btn?.querySelector('img') as HTMLImageElement | null
-      if (track && logo) {
-        const r = track.getBoundingClientRect()
-        const fillW = (DATA[focusedIdx].value / MAX) * r.width
-        const SIZE = 36 // painted-logo diameter
-        // Center the flourish inside the cylinder, 22px from its right end.
-        // For very short bars, fall back to the cylinder's midpoint.
-        const targetFromRight = 22
-        const minCx = SIZE / 2 + 4
-        const cxLocal = Math.max(minCx, fillW - targetFromRight)
-        const cx = r.left - wrapperRect.left + cxLocal
-        const cy = r.top - wrapperRect.top + r.height / 2
+      const x = barX(focusedIdx)
+      const yTop = barTopFor(focusedIdx)
+      const h = baseline - yTop
+      const labelTop = PAD_T + 4
+      const total = h + (yTop - labelTop)
 
-        ctx.save()
-        ctx.shadowColor = DATA[focusedIdx].color
-        ctx.shadowBlur = 14
-        ctx.globalAlpha = 0.85
-        ctx.translate(cx, cy)
-        const scale = SIZE / 24
-        ctx.scale(scale, scale)
-        ctx.translate(-12, -12)
+      ctx.save()
+      ctx.lineJoin = 'round'
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)'
+      ctx.lineWidth = 4
+      ctx.strokeRect(x - 5, labelTop - 4, barW + 10, total + 8)
+      ctx.strokeStyle = DATA[focusedIdx].color
+      ctx.lineWidth = 2
+      ctx.strokeRect(x - 5, labelTop - 4, barW + 10, total + 8)
+      ctx.restore()
+    }
 
-        const ctxAny = ctx as CanvasRenderingContext2D & {
-          drawElement?: (el: Element) => void
-          drawElementImage?: (el: Element) => void
-        }
-        const spec = ctxAny.drawElement || ctxAny.drawElementImage
-        try {
-          if (typeof spec === 'function') {
-            spec.call(ctxAny, logo)
-          } else if (logo.complete && logo.naturalWidth > 0) {
-            ctx.drawImage(logo, 0, 0, 24, 24)
+    // ----- drawElement(): composite HTML labels into the canvas -----
+    // When the flag is enabled, this is the actual spec primitive — the
+    // canvas pixel buffer now contains the label's rasterized pixels at
+    // the bar's exact position. The same <button> still lives in the DOM
+    // (focusable, screen-reader-readable). Without the flag, we just
+    // skip this step — the CSS-positioned labels above the canvas are
+    // doing the visible work either way.
+    if (supported) {
+      const ctxAny = ctx as CanvasRenderingContext2D & {
+        drawElement?: (el: Element) => void
+        drawElementImage?: (el: Element) => void
+      }
+      const spec = ctxAny.drawElement || ctxAny.drawElementImage
+      if (typeof spec === 'function') {
+        DATA.forEach((_, i) => {
+          const el = labelRefs.current[i]
+          if (!el) return
+          const x = barX(i) + barW / 2
+          const y = barTopFor(i) - 8
+          ctx.save()
+          ctx.translate(x, y)
+          try {
+            spec.call(ctxAny, el)
+          } catch {
+            // Experimental API — if signature/state differs in this
+            // Chromium build, silently skip rather than crash paint.
           }
-        } catch {
-          if (logo.complete && logo.naturalWidth > 0) {
-            ctx.drawImage(logo, 0, 0, 24, 24)
-          }
-        }
-        ctx.restore()
+          ctx.restore()
+        })
       }
     }
-  }, [focusedIdx])
+  }, [dims, focusedIdx, progress, supported, baseline, plotH, barW, innerSlot])
 
   useLayoutEffect(() => {
     paint()
   }, [paint])
 
-  useEffect(() => {
-    if (!wrapperRef.current) return
-    const obs = new ResizeObserver(() => paint())
-    obs.observe(wrapperRef.current)
-    window.addEventListener('resize', paint)
-    return () => {
-      obs.disconnect()
-      window.removeEventListener('resize', paint)
-    }
-  }, [paint])
-
-  const handleFocus = useCallback((i: number) => setFocusedIdx(i), [])
-  const handleBlur = useCallback(() => setFocusedIdx(null), [])
+  // Arrow keys move focus across bars (Right/Down → next, Left/Up → prev).
+  const onLabelKeyDown = useCallback(
+    (e: ReactKeyboardEvent<HTMLButtonElement>) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        const next =
+          focusedIdx === null
+            ? 0
+            : Math.min(DATA.length - 1, focusedIdx + 1)
+        labelRefs.current[next]?.focus()
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        const prev =
+          focusedIdx === null
+            ? DATA.length - 1
+            : Math.max(0, focusedIdx - 1)
+        labelRefs.current[prev]?.focus()
+      }
+    },
+    [focusedIdx]
+  )
 
   return (
     <div className="my-6 border border-border rounded-xl bg-card overflow-hidden">
@@ -275,47 +323,46 @@ export default function HtmlInCanvasBarChart() {
             Super Bowl Wins · NFC East
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Bars colored by each franchise's primary jersey color.
+            Tab into the chart, then use <kbd className="font-mono">←</kbd>{' '}
+            <kbd className="font-mono">→</kbd> to move between bars.
           </p>
         </div>
 
-        <div ref={wrapperRef} className="relative">
-          <canvas
-            ref={canvasRef}
-            aria-hidden="true"
-            className="absolute inset-0 pointer-events-none"
-          />
-          <ul
-            role="list"
-            aria-label="Super Bowl wins by NFC East franchise"
-            className="list-none space-y-1 relative"
-          >
-            {DATA.map((d, i) => (
-              <li key={d.label}>
-                <BarButton
-                  data={d}
-                  index={i}
-                  onFocus={() => handleFocus(i)}
-                  onBlur={handleBlur}
-                  paintingViaCanvas
-                  btnRef={(el) => {
-                    buttonRefs.current[i] = el
-                  }}
-                  trackRef={(el) => {
-                    trackRefs.current[i] = el
-                  }}
-                />
-              </li>
-            ))}
-          </ul>
+        <div
+          ref={wrapperRef}
+          className="relative bg-muted/20 rounded-lg overflow-hidden"
+          role="group"
+          aria-label="Super Bowl wins by NFC East franchise"
+          style={{ height: `${dims.h}px` }}
+        >
+          <canvas ref={canvasRef} aria-hidden="true" />
+
+          {/* HTML labels positioned over each bar. These are the actual
+              accessibility surface — focusable buttons with full aria
+              labels. With the flag enabled, their pixels are ALSO
+              composited into the canvas via drawElement() above. */}
+          {DATA.map((d, i) => {
+            const x = barX(i) + barW / 2
+            const y = barTopFor(i) - 8
+            return (
+              <BarLabel
+                key={d.team}
+                datum={d}
+                index={i}
+                x={x}
+                y={y}
+                onFocus={() => setFocusedIdx(i)}
+                onBlur={() => setFocusedIdx(null)}
+                onKeyDown={onLabelKeyDown}
+                btnRef={(el) => {
+                  labelRefs.current[i] = el
+                }}
+              />
+            )
+          })}
         </div>
 
-        <div
-          ref={liveRegionRef}
-          aria-live="polite"
-          aria-atomic="true"
-          className="sr-only"
-        />
+        <SrPreview focusedIdx={focusedIdx} />
 
         <Caption supported={supported} />
       </div>
@@ -324,80 +371,62 @@ export default function HtmlInCanvasBarChart() {
 }
 
 // =============================================================================
-// BAR BUTTON
+// SUBCOMPONENTS
 // =============================================================================
 
-function BarButton({
-  data,
+function BarLabel({
+  datum,
   index,
+  x,
+  y,
   onFocus,
   onBlur,
-  paintingViaCanvas,
+  onKeyDown,
   btnRef,
-  trackRef,
 }: {
-  data: Bar
+  datum: Datum
   index: number
+  x: number
+  y: number
   onFocus: () => void
   onBlur: () => void
-  paintingViaCanvas: boolean
+  onKeyDown: (e: ReactKeyboardEvent<HTMLButtonElement>) => void
   btnRef: (el: HTMLButtonElement | null) => void
-  trackRef: (el: HTMLElement | null) => void
 }) {
-  const widthPct = (data.value / MAX) * 100
+  const winsWord = datum.value === 1 ? 'win' : 'wins'
 
   return (
     <button
       ref={btnRef}
       type="button"
-      onFocus={onFocus}
-      onBlur={onBlur}
-      onClick={onFocus}
       role="listitem"
-      aria-label={`${data.label}: ${data.value} Super Bowl ${data.value === 1 ? 'win' : 'wins'}`}
+      aria-label={`${datum.team}: ${datum.value} Super Bowl ${winsWord}`}
       aria-posinset={index + 1}
       aria-setsize={DATA.length}
-      className="group w-full text-left flex items-center gap-3 sm:gap-4 px-2 sm:px-3 py-2 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card hover:bg-muted/40 transition-colors"
+      onFocus={onFocus}
+      onBlur={onBlur}
+      onKeyDown={onKeyDown}
+      className="absolute flex flex-col items-center gap-0.5 px-2 py-1 rounded-md bg-card/80 backdrop-blur-sm shadow-sm border border-border/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card transition-shadow hover:shadow-md"
+      style={{
+        left: `${x}px`,
+        top: `${y}px`,
+        transform: 'translate(-50%, -100%)',
+      }}
     >
-      <span className="flex-shrink-0 w-44 sm:w-64 text-sm leading-snug flex items-center gap-2">
-        <img
-          src={data.logo}
-          alt={`${data.label} logo`}
-          width="24"
-          height="24"
-          crossOrigin="anonymous"
-          className="flex-shrink-0"
-        />
-        <span>{data.label}</span>
-      </span>
-      <span
-        ref={trackRef}
-        className="relative flex-1 h-8 rounded-sm overflow-hidden"
-        aria-hidden="true"
-      >
-        {paintingViaCanvas ? null : (
-          <>
-            <span className="absolute inset-0 bg-muted/60" aria-hidden="true" />
-            <span
-              className="absolute inset-y-0 left-0 transition-all duration-300 group-focus-visible:brightness-110"
-              style={{ width: `${widthPct}%`, backgroundColor: data.color }}
-            />
-          </>
-        )}
-      </span>
-      <span
-        className="flex-shrink-0 w-8 text-right text-sm font-mono tabular-nums text-muted-foreground group-focus-visible:text-foreground"
-        aria-hidden="true"
-      >
-        {data.value}
+      <img
+        src={datum.logo}
+        alt=""
+        width="20"
+        height="20"
+        crossOrigin="anonymous"
+        className="flex-shrink-0"
+      />
+      <span className="font-mono text-sm font-bold tabular-nums leading-none">
+        {datum.value}
       </span>
     </button>
   )
 }
-
-// =============================================================================
-// BANNER + CAPTION
-// =============================================================================
 
 function FlagBanner({ supported }: { supported: boolean | null }) {
   if (supported === null) {
@@ -415,11 +444,11 @@ function FlagBanner({ supported }: { supported: boolean | null }) {
           ✓ Flag enabled.
         </strong>{' '}
         <span className="text-foreground/80">
-          The 3D cylinders are painted to a <code className="font-mono">&lt;canvas&gt;</code>{' '}
-          2D context. <strong>Focus a bar</strong> and its team logo gets painted via{' '}
-          <code className="font-mono">drawElement()</code> — the same{' '}
-          <code className="font-mono">&lt;img&gt;</code> that's in the accessibility
-          tree, also rendered as canvas pixels with a colored glow.
+          The labels above each bar are real HTML <code className="font-mono">&lt;button&gt;</code>s,
+          and their pixels are also composited into the canvas via{' '}
+          <code className="font-mono">drawElement()</code> — the same DOM
+          element is both the accessibility surface AND a canvas-painted
+          asset.
         </span>
       </div>
     )
@@ -431,9 +460,10 @@ function FlagBanner({ supported }: { supported: boolean | null }) {
         ✗ Flag not enabled.
       </strong>{' '}
       <span className="text-foreground/80">
-        The 3D cylinders below are painted with normal Canvas 2D (no flag required).
-        The <code className="font-mono">drawElement()</code> flourish on focus uses{' '}
-        a fallback. To see the real spec primitive, open{' '}
+        The chart still works — bars are painted to the canvas, labels are
+        CSS-positioned HTML buttons on top. To see the real{' '}
+        <code className="font-mono">drawElement()</code> spec primitive
+        composite the labels into the canvas pixel buffer, open{' '}
         <code className="font-mono select-all">
           chrome://flags/#canvas-draw-element
         </code>{' '}
@@ -443,27 +473,68 @@ function FlagBanner({ supported }: { supported: boolean | null }) {
   )
 }
 
+function SrPreview({ focusedIdx }: { focusedIdx: number | null }) {
+  const announcement =
+    focusedIdx === null
+      ? 'Focus a bar to preview what a screen reader announces.'
+      : `${DATA[focusedIdx].team}: ${DATA[focusedIdx].value} Super Bowl ${
+          DATA[focusedIdx].value === 1 ? 'win' : 'wins'
+        }`
+
+  return (
+    <div
+      className="mt-4 p-3 rounded-md bg-muted/40 border border-border/60"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <div className="flex items-center gap-2 mb-1">
+        <span
+          className="inline-block w-2 h-2 rounded-full bg-emerald-500"
+          aria-hidden="true"
+        />
+        <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+          Screen reader preview
+        </span>
+      </div>
+      <p className="text-sm font-mono text-foreground/90 min-h-[1.4em]">
+        {focusedIdx === null ? (
+          <span className="text-muted-foreground italic">{announcement}</span>
+        ) : (
+          announcement
+        )}
+      </p>
+    </div>
+  )
+}
+
 function Caption({ supported }: { supported: boolean | null }) {
   return (
-    <p className="mt-5 text-xs text-muted-foreground leading-relaxed">
-      Tab/Shift+Tab to move between bars. The live region above announces the focused
-      bar's label and value to assistive tech. The buttons are standard HTML — native
-      accessibility patterns work as-is. The cylinder fills and the focus flourish are
-      painted to a <code className="font-mono">&lt;canvas&gt;</code> overlaid behind
-      the buttons.{' '}
+    <p className="mt-4 text-xs text-muted-foreground leading-relaxed">
+      Inspired by the{' '}
+      <a
+        href="https://html-in-canvas.dev/demos/accessible-charts/"
+        target="_blank"
+        rel="noreferrer"
+        className="underline underline-offset-2 hover:opacity-80"
+      >
+        accessible-charts demo
+      </a>{' '}
+      on html-in-canvas.dev. The canvas paints bars + grid + axis labels;
+      each value above is a real <code className="font-mono">&lt;button&gt;</code>{' '}
+      with an <code className="font-mono">aria-label</code> screen readers
+      announce.{' '}
       {supported === true && (
         <>
-          With the flag detected, the focus flourish uses the real{' '}
-          <code className="font-mono">drawElement()</code> spec primitive to paint the
-          focused <code className="font-mono">&lt;img&gt;</code> directly to the
-          canvas.
+          With the flag detected, every paint frame also composites the
+          buttons into the canvas pixel buffer via{' '}
+          <code className="font-mono">drawElement()</code>.
         </>
       )}
       {supported === false && (
         <>
-          Without the flag, the focus flourish falls back to{' '}
-          <code className="font-mono">ctx.drawImage</code> so the cylinders + glow
-          still work.
+          Without the flag, the labels are CSS-positioned over the canvas.
+          With it on, they'd be composited into the canvas itself.
         </>
       )}
     </p>

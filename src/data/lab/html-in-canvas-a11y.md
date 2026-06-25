@@ -25,6 +25,8 @@ There's a new Chrome flag (`canvas-draw-element`) being prototyped at [html-in-c
 
 The key bit: **the HTML you draw stays in the accessibility tree.** Drawn elements are the fallback content. Screen readers, focus, and keyboard navigation all see what's actually on screen.
 
+Here's why that's the whole ballgame: **the visual element and the accessible element become the same node.** Today, every workaround maintains two parallel realities — the canvas pixels over here, a hidden table or stuffed `aria-label` over there — and they drift. Someone updates the chart, forgets the table, and the screen-reader experience silently rots. With this spec there's one source of truth. The `<button>` a screen reader announces is the exact same `<button>` the canvas paints. Update one, both change. No duplication, nothing to keep in sync, nothing to go stale.
+
 ## Why I'm excited
 
 I could build a bar chart where each bar is a real `<button>`. The canvas renders the bar visually (via WebGL or 2D), but the accessibility tree sees a list of focusable, labeled buttons. Tab through them. Screen reader reads *"Q1 2026 utilization: 4,200 users."* Hit Enter on one and trigger a drill-down. Tooltips become real popovers, not canvas-drawn boxes. Selection and zoom work via standard keyboard shortcuts.
@@ -33,7 +35,11 @@ That's a different category of UX from "the chart is over here and the parallel 
 
 ## Building a POC
 
-I want to try it in the Lab — a tiny ECharts-style bar chart where each bar is keyboard-navigable, screen-reader-labeled, and clickable. Just to feel the shape of the API.
+I built a small NFC-East-themed vertical bar chart in the Lab to feel the shape of the API. It was inspired by the [accessible-charts demo](https://html-in-canvas.dev/demos/accessible-charts/) on html-in-canvas.dev — same patterns lifted: real DOM elements as the labels, animated bars on mount, keyboard navigation with arrow keys, a live "screen reader preview" panel so sighted readers can feel what assistive tech announces, and hand-drawn focus rings (since `drawFocusIfNeeded()` still crashes in some Chromium builds).
+
+The canvas paints the bars, grid, axis labels, and focus rings. The number-and-logo labels above each bar are real `<button>` elements — focusable, with full `aria-label` strings, navigable via arrow keys. When the flag is on, those buttons' pixels are also composited into the canvas via `drawElement()` so the same DOM node is doing double duty as the accessibility surface AND a canvas-painted asset. When the flag is off, the labels are just CSS-positioned over the canvas and the chart still works — same a11y, no spec primitive.
+
+It's a "demonstrate one primitive cleanly" version rather than a full `layoutsubtree`-driven recreation. Putting the labels inside `<canvas>` via `layoutsubtree` is brittle across the Chromium builds I tested — children either flicker or refuse to render — so I went with the more reliable architecture and used `drawElement()` as the showcased primitive.
 
 Open questions I'm sitting with:
 
